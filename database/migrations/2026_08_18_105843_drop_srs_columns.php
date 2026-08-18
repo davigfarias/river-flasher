@@ -15,10 +15,18 @@ return new class extends Migration
      * backfill and this irreversible drop to spot-check production data.
      * `cards.last_reviewed_at` is kept — it still drives deck ordering and
      * the "reviewed today" dashboard stat.
+     *
+     * `cards_deck_id_due_at_index` is the only index covering `deck_id`,
+     * which MySQL's InnoDB requires to stay indexed for the `deck_id`
+     * foreign key — dropping it outright errors with 1553. Adding a plain
+     * index on `deck_id` in the same statement keeps the FK covered
+     * throughout. SQLite has no such requirement, which is why this only
+     * surfaces against MySQL (i.e. never appeared in local/test runs).
      */
     public function up(): void
     {
         Schema::table('cards', function (Blueprint $table) {
+            $table->index('deck_id');
             $table->dropIndex(['deck_id', 'due_at']);
             $table->dropColumn(['ease_factor', 'interval_minutes', 'repetitions', 'due_at']);
         });
@@ -42,6 +50,7 @@ return new class extends Migration
             $table->unsignedInteger('repetitions')->default(0);
             $table->dateTime('due_at')->nullable();
             $table->index(['deck_id', 'due_at']);
+            $table->dropIndex(['deck_id']);
         });
 
         Schema::table('reviews', function (Blueprint $table) {
