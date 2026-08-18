@@ -17,8 +17,6 @@ final readonly class CreateDeck
             'access_token_id' => $token->id,
             'name' => $data->name,
             'slug' => $this->uniqueSlug($token, $data->name),
-            'icon' => $data->icon,
-            'color' => $data->color,
         ]);
     }
 

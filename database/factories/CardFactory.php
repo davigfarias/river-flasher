@@ -31,60 +31,33 @@ class CardFactory extends Factory
             'example' => $this->faker->sentence(),
             'translation' => $this->faker->sentence(),
             'is_difficult' => false,
-            'ease_factor' => 2.50,
-            'interval_minutes' => 0,
-            'repetitions' => 0,
-            'due_at' => now(),
+            'aced_count' => 0,
+            'missed_count' => 0,
             'last_reviewed_at' => null,
         ];
     }
 
     /**
-     * A card mid-way through the SM-2 learning steps.
+     * A card the user has been getting right.
      */
-    public function learning(): static
+    public function studied(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'interval_minutes' => 10,
-            'repetitions' => 0,
-            'due_at' => now()->addMinutes(10),
-            'last_reviewed_at' => now(),
+            'aced_count' => 3,
+            'missed_count' => 1,
+            'last_reviewed_at' => now()->subHours(2),
         ]);
     }
 
     /**
-     * A graduated card in the normal review rotation.
+     * A card that needs reinforcing: missed more than it's been aced.
      */
-    public function review(): static
+    public function struggling(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'interval_minutes' => 4320,
-            'repetitions' => 3,
-            'due_at' => now()->addDay(),
-            'last_reviewed_at' => now()->subDays(2),
-        ]);
-    }
-
-    /**
-     * A card that has crossed the mature threshold (interval >= 21 days).
-     */
-    public function mature(): static
-    {
-        return $this->state(fn (array $attributes): array => [
-            'interval_minutes' => Card::MATURE_THRESHOLD_MINUTES,
-            'repetitions' => 8,
-            'due_at' => now()->addDays(21),
-            'last_reviewed_at' => now()->subDays(5),
-        ]);
-    }
-
-    /**
-     * Force the card to be due right now, regardless of its SRS state.
-     */
-    public function dueNow(): static
-    {
-        return $this->state(fn (array $attributes): array => [
-            'due_at' => now(),
+            'aced_count' => 1,
+            'missed_count' => 3,
+            'last_reviewed_at' => now()->subDay(),
         ]);
     }
 }

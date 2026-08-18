@@ -53,26 +53,18 @@ class DemoSeeder extends Seeder
             [
                 'slug' => 'greek-nt-vocab',
                 'name' => 'Koine Greek — New Testament Vocab',
-                'icon' => 'language',
-                'color' => 'text-secondary',
             ],
             [
                 'slug' => 'hebrew-genesis',
                 'name' => 'Biblical Hebrew — Genesis 1–3',
-                'icon' => 'book-open',
-                'color' => 'text-tertiary',
             ],
             [
                 'slug' => 'greek-verbs',
                 'name' => 'Greek Verb Paradigms',
-                'icon' => 'table-cells',
-                'color' => 'text-primary',
             ],
             [
                 'slug' => 'hebrew-alphabet',
                 'name' => 'Hebrew Alphabet & Niqqud',
-                'icon' => 'sparkles',
-                'color' => 'text-on-surface-variant',
             ],
         ];
 
@@ -130,9 +122,9 @@ class DemoSeeder extends Seeder
             ['word' => 'ד', 'transliteration' => 'dalet', 'definition' => 'The fourth letter; pronounced "d".'],
         ];
 
-        // Already learned — this deck should show as caught up, not due.
+        // Already studied — this deck should show as caught up.
         foreach ($letters as $letter) {
-            Card::factory()->review()->create([
+            Card::factory()->studied()->create([
                 'deck_id' => $deck->id,
                 'language' => Language::Hebrew,
                 'pos' => 'Letter',
@@ -163,33 +155,26 @@ class DemoSeeder extends Seeder
                 'definition' => $card['definition'],
                 'example' => $card['example'],
                 'translation' => $card['translation'],
-                'due_at' => now(),
             ]);
         }
     }
 
     /**
      * ~30 days of mixed-state filler cards and review history, so the
-     * dashboard's streak, activity chart, and "mastered this week" stat
-     * all have something real to show immediately after seeding.
+     * dashboard's streak, activity chart, and reinforce counts all have
+     * something real to show immediately after seeding.
      *
      * @param  array<string, Deck>  $decks
      */
     private function createFillerHistory(AccessToken $token, array $decks): void
     {
-        $dueEligibleDecks = collect($decks)->except('hebrew-alphabet');
-
         /** @var Collection<int, Card> $fillerCards */
         $fillerCards = collect();
 
         foreach ($decks as $deck) {
-            $fillerCards->push(Card::factory()->learning()->create(['deck_id' => $deck->id]));
-            $fillerCards->push(Card::factory()->review()->create(['deck_id' => $deck->id]));
-            $fillerCards->push(Card::factory()->mature()->create(['deck_id' => $deck->id]));
-        }
-
-        foreach ($dueEligibleDecks as $deck) {
-            $fillerCards->push(Card::factory()->dueNow()->create(['deck_id' => $deck->id]));
+            $fillerCards->push(Card::factory()->create(['deck_id' => $deck->id]));
+            $fillerCards->push(Card::factory()->studied()->create(['deck_id' => $deck->id]));
+            $fillerCards->push(Card::factory()->struggling()->create(['deck_id' => $deck->id]));
         }
 
         // Guarantee today and yesterday are always populated, so the

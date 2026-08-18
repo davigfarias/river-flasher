@@ -32,7 +32,7 @@ final readonly class ComputeActivityChart
         $counts = $this->countsByKey($accessTokenId, $windowStart, fn (CarbonImmutable $date): string => $date->format('Y-m-d'));
 
         $buckets = collect(range(6, 0))->map(fn (int $daysAgo): array => [
-            'label' => $now->subDays($daysAgo)->format('D'),
+            'label' => $now->subDays($daysAgo)->translatedFormat('D'),
             'key' => $now->subDays($daysAgo)->format('Y-m-d'),
         ]);
 
@@ -52,7 +52,7 @@ final readonly class ComputeActivityChart
         );
 
         $buckets = collect(range(0, 3))->map(fn (int $week): array => [
-            'label' => 'W'.($week + 1),
+            'label' => 'S'.($week + 1),
             'key' => (string) $week,
         ]);
 
@@ -68,7 +68,7 @@ final readonly class ComputeActivityChart
         $counts = $this->countsByKey($accessTokenId, $windowStart, fn (CarbonImmutable $date): string => $date->format('Y-m'));
 
         $buckets = collect(range(5, 0))->map(fn (int $monthsAgo): array => [
-            'label' => $now->subMonths($monthsAgo)->format('M'),
+            'label' => $now->subMonths($monthsAgo)->translatedFormat('M'),
             'key' => $now->subMonths($monthsAgo)->format('Y-m'),
         ]);
 

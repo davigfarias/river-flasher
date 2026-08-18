@@ -18,13 +18,18 @@ test('guests are redirected away from the dashboard', function () {
     $this->get('/dashboard')->assertRedirect(route('home'));
 });
 
-test('it renders the real due count and recent deck', function () {
-    Card::factory()->count(4)->dueNow()->create(['deck_id' => $this->deck->id]);
+test('it renders the reinforce count and recent deck', function () {
+    Card::factory()->struggling()->count(2)->create(['deck_id' => $this->deck->id]);
 
     Livewire::test('pages::dashboard')
-        ->assertSee('4 cards due for review today')
+        ->assertSee('Você tem 2 cartões para reforçar.')
         ->assertSee('Koine Greek')
-        ->assertSee('4 due');
+        ->assertSee('2 para reforçar');
+});
+
+test('with nothing to reinforce, the hero shows the up-to-date message', function () {
+    Livewire::test('pages::dashboard')
+        ->assertSee('Tudo em dia.');
 });
 
 test('switching the range recomputes the activity chart', function () {
@@ -32,5 +37,5 @@ test('switching the range recomputes the activity chart', function () {
         ->assertSet('range', '7d')
         ->set('range', '30d')
         ->assertSet('range', '30d')
-        ->assertSee('W1');
+        ->assertSee('S1');
 });

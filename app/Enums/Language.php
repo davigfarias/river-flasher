@@ -10,8 +10,8 @@ enum Language: string
     public function label(): string
     {
         return match ($this) {
-            self::Greek => 'Greek',
-            self::Hebrew => 'Hebrew',
+            self::Greek => 'Grego',
+            self::Hebrew => 'Hebraico',
         };
     }
 

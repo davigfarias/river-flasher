@@ -8,6 +8,7 @@ test('guests are redirected to the login page for every protected route', functi
     $this->get($uri)->assertRedirect(route('home'));
 })->with([
     '/dashboard',
+    '/decks',
     '/study',
     '/flashcards/create',
 ]);

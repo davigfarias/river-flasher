@@ -8,7 +8,5 @@ final readonly class DeckData
 {
     public function __construct(
         public string $name,
-        public string $icon,
-        public string $color,
     ) {}
 }

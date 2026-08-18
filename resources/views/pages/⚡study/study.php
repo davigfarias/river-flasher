@@ -1,15 +1,12 @@
 <?php
 
-use App\Actions\Orchestrators\{
-    PreviewNextIntervalsOrchestrator, 
-    RateCardOrchestrator, 
-    StartStudySessionOrchestrator};
-use App\Enums\CardRating;
+use App\Actions\Orchestrators\{AnswerCardOrchestrator, StartStudySessionOrchestrator};
+use App\Enums\ReviewResult;
 use App\Models\{Card, Deck};
 use Livewire\Attributes\{Computed, Layout, Locked, Title};
 use Livewire\Component;
 
-new #[Layout('layouts::app')] #[Title('Study')] class extends Component
+new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
 {
     public string $deckName = '';
 
@@ -22,8 +19,8 @@ new #[Layout('layouts::app')] #[Title('Study')] class extends Component
 
     /**
      * Distinct cards in this session, fixed at session start. `cardIds`
-     * itself grows as short learning-step ratings requeue a card, so it
-     * can't be used to report "how many cards" without over-counting.
+     * itself grows as "não lembrei" requeues a card, so it can't be used
+     * to report "how many cards" without over-counting.
      */
     #[Locked]
     public int $totalCards = 0;
@@ -55,23 +52,12 @@ new #[Layout('layouts::app')] #[Title('Study')] class extends Component
             : (int) round(($this->completedCount / $this->totalCards) * 100);
     }
 
-    /**
-     * @return array<string, string>
-     */
-    #[Computed]
-    public function intervals(): array
-    {
-        $card = $this->card;
-
-        return $card ? app(PreviewNextIntervalsOrchestrator::class)->handle($card) : [];
-    }
-
     public function reveal(): void
     {
         $this->revealed = true;
     }
 
-    public function rate(string $rating, RateCardOrchestrator $orchestrator): void
+    public function answer(string $result, AnswerCardOrchestrator $orchestrator): void
     {
         $card = $this->card;
 
@@ -81,9 +67,11 @@ new #[Layout('layouts::app')] #[Title('Study')] class extends Component
 
         abort_unless($card->deck->access_token_id === session('access_token_id'), 404);
 
-        $outcome = $orchestrator->handle($card, CardRating::from($rating));
+        $result = ReviewResult::from($result);
 
-        if ($outcome->intervalMinutes < 15) {
+        $orchestrator->handle($card, $result);
+
+        if ($result === ReviewResult::Forgot) {
             $this->cardIds[] = $card->id;
         } else {
             $this->completedCount++;
@@ -91,7 +79,7 @@ new #[Layout('layouts::app')] #[Title('Study')] class extends Component
 
         $this->index++;
         $this->revealed = false;
-        unset($this->card, $this->intervals);
+        unset($this->card);
     }
 
     public function restart(StartStudySessionOrchestrator $orchestrator): void
@@ -117,6 +105,6 @@ new #[Layout('layouts::app')] #[Title('Study')] class extends Component
         $this->completedCount = 0;
         $this->index = 0;
         $this->revealed = false;
-        unset($this->card, $this->intervals);
+        unset($this->card);
     }
 };

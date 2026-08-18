@@ -9,7 +9,7 @@ use Illuminate\Support\Collection as SupportCollection;
 use Livewire\Attributes\{Computed, Layout, Title};
 use Livewire\Component;
 
-new #[Layout('layouts::app')] #[Title('Create Flashcard')] class extends Component
+new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
 {
     public CardForm $form;
 

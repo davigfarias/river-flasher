@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\CardRating;
+use App\Enums\ReviewResult;
 use Carbon\CarbonImmutable;
 use Database\Factories\ReviewFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,9 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $card_id
  * @property int $access_token_id
- * @property CardRating $rating
- * @property float $ease_factor_after
- * @property int $interval_minutes_after
+ * @property ReviewResult $result
  * @property CarbonImmutable $reviewed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -29,9 +27,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'card_id',
     'access_token_id',
-    'rating',
-    'ease_factor_after',
-    'interval_minutes_after',
+    'result',
     'reviewed_at',
 ])]
 class Review extends Model
@@ -42,9 +38,7 @@ class Review extends Model
     public function casts(): array
     {
         return [
-            'rating' => CardRating::class,
-            'ease_factor_after' => 'float',
-            'interval_minutes_after' => 'integer',
+            'result' => ReviewResult::class,
             'reviewed_at' => 'immutable_datetime',
         ];
     }

@@ -55,8 +55,7 @@ test('it creates a card with the rich fields and resets the form', function () {
         ->and($card->example)->toBe('τῇ γὰρ χάριτί ἐστε σεσῳσμένοι')
         ->and($card->translation)->toBe('For by grace you have been saved.')
         ->and($card->language)->toBe(Language::Greek)
-        ->and($card->is_difficult)->toBeTrue()
-        ->and($card->due_at)->not->toBeNull();
+        ->and($card->is_difficult)->toBeTrue();
 });
 
 test('switching decks does not reset the language the user picked', function () {

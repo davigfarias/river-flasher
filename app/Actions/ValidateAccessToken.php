@@ -19,7 +19,7 @@ final readonly class ValidateAccessToken
                 ->first();
 
             if (! $token) {
-                return Outcome::failure(message: 'Invalid code.');
+                return Outcome::failure(message: 'Código inválido.');
             }
 
             $token->update(['last_used_at' => now()]);
@@ -28,7 +28,7 @@ final readonly class ValidateAccessToken
         } catch (\Exception $e) {
             Log::error("Error: {$e->getMessage()}");
 
-            return Outcome::failure(message: 'Unable to validate the code.');
+            return Outcome::failure(message: 'Não foi possível validar o código.');
         }
     }
 }

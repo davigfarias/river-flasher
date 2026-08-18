@@ -10,14 +10,10 @@ test('it creates a deck with a slug derived from the name', function () {
 
     $deck = app(CreateDeck::class)->handle($token, new DeckData(
         name: 'Koine Greek — New Testament Vocab',
-        icon: 'language',
-        color: 'text-secondary',
     ));
 
     expect($deck->access_token_id)->toBe($token->id)
-        ->and($deck->slug)->toBe('koine-greek-new-testament-vocab')
-        ->and($deck->icon)->toBe('language')
-        ->and($deck->color)->toBe('text-secondary');
+        ->and($deck->slug)->toBe('koine-greek-new-testament-vocab');
 });
 
 test('it disambiguates a slug collision within the same token', function () {
@@ -26,8 +22,6 @@ test('it disambiguates a slug collision within the same token', function () {
 
     $deck = app(CreateDeck::class)->handle($token, new DeckData(
         name: 'Greek Verbs',
-        icon: 'table-cells',
-        color: 'text-primary',
     ));
 
     expect($deck->slug)->toBe('greek-verbs-2');
@@ -37,7 +31,7 @@ test('the same deck name is allowed across two different tokens', function () {
     $tokenA = AccessToken::factory()->create();
     $tokenB = AccessToken::factory()->create();
 
-    $data = new DeckData(name: 'Greek Verbs', icon: 'table-cells', color: 'text-primary');
+    $data = new DeckData(name: 'Greek Verbs');
 
     $deckA = app(CreateDeck::class)->handle($tokenA, $data);
     $deckB = app(CreateDeck::class)->handle($tokenB, $data);

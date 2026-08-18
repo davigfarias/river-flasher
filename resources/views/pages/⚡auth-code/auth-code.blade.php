@@ -3,8 +3,8 @@
         <flux:icon.droplet class="size-8 text-primary" />
     </div>
 
-    <h1 class="text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">Enter Access Code</h1>
-    <p class="text-body-md text-on-surface-variant mb-8">Please enter the 4-digit code provided to join the study session.</p>
+    <h1 class="text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">Digite o código de acesso</h1>
+    <p class="text-body-md text-on-surface-variant mb-8">Digite o código de 4 dígitos fornecido para entrar na sessão de estudo.</p>
 
     <form wire:submit="joinSession" class="w-full flex flex-col gap-6">
         <flux:otp wire:model="code" length="4" submit="auto" class="w-full justify-between" />
@@ -14,7 +14,7 @@
         @enderror
 
         <flux:button type="submit" variant="primary" icon:trailing="arrow-right" class="w-full justify-center min-h-12">
-            Start Studying
+            Começar a estudar
         </flux:button>
     </form>
 </div>

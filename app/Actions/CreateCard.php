@@ -21,7 +21,6 @@ final readonly class CreateCard
             'example' => $data->example,
             'translation' => $data->translation,
             'is_difficult' => $data->isDifficult,
-            'due_at' => now(),
         ]);
     }
 }

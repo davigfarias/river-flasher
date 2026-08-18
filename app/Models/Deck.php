@@ -18,13 +18,11 @@ use Illuminate\Support\Carbon;
  * @property int $access_token_id
  * @property string $name
  * @property string $slug
- * @property string $icon
- * @property string $color
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[UseFactory(DeckFactory::class)]
-#[Fillable(['access_token_id', 'name', 'slug', 'icon', 'color'])]
+#[Fillable(['access_token_id', 'name', 'slug'])]
 class Deck extends Model
 {
     /** @use HasFactory<DeckFactory> */

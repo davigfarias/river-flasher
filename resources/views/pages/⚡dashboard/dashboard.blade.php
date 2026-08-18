@@ -1,5 +1,5 @@
 <x-slot:mobileHeader>
-    <h1 class="text-headline-lg-mobile font-bold text-primary truncate">Dashboard</h1>
+    <h1 class="text-headline-lg-mobile font-bold text-primary truncate">Painel</h1>
 </x-slot:mobileHeader>
 
 <div class="p-4 md:p-6 lg:p-12">
@@ -8,27 +8,31 @@
             <div>
                 <h2 class="text-display-lg text-on-surface mb-1">{{ $this->greeting }}</h2>
                 <p class="text-body-lg text-on-surface-variant">
-                    You have {{ $this->dashboard->dueToday }} {{ Str::plural('card', $this->dashboard->dueToday) }} due for review today.
+                    @if ($this->dashboard->toReinforce > 0)
+                        Você tem {{ $this->dashboard->toReinforce }} {{ $this->dashboard->toReinforce === 1 ? 'cartão para reforçar' : 'cartões para reforçar' }}.
+                    @else
+                        Tudo em dia. Nenhum cartão precisa de reforço agora.
+                    @endif
                 </p>
             </div>
-            <flux:button :href="route('study')" wire:navigate variant="primary" icon="academic-cap" :disabled="$this->dashboard->dueToday === 0" class="w-full md:w-auto justify-center">
-                Review Now
+            <flux:button :href="route('study')" wire:navigate variant="primary" icon="academic-cap" :disabled="$this->dashboard->totalCards === 0" class="w-full md:w-auto justify-center">
+                Estudar agora
             </flux:button>
         </section>
 
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-surface-container hover:bg-surface-container-high transition-colors duration-300 p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between group">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-label-md text-on-surface-variant">Cards Mastered</h3>
+                    <h3 class="text-label-md text-on-surface-variant">Total de cartões</h3>
                     <div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
                         <flux:icon.check-badge class="size-4" />
                     </div>
                 </div>
                 <div>
-                    <p class="text-display-lg text-on-surface">{{ number_format($this->dashboard->masteredTotal) }}</p>
+                    <p class="text-display-lg text-on-surface">{{ number_format($this->dashboard->totalCards) }}</p>
                     <p class="text-label-sm text-tertiary flex items-center gap-1 mt-1">
                         <flux:icon.arrow-trending-up class="size-3.5" />
-                        +{{ $this->dashboard->masteredThisWeek }} this week
+                        +{{ $this->dashboard->cardsThisWeek }} esta semana
                     </p>
                 </div>
             </div>
@@ -36,27 +40,27 @@
             <div class="bg-surface-container hover:bg-surface-container-high transition-colors duration-300 p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between group relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
                 <div class="flex items-center justify-between mb-4 relative z-10">
-                    <h3 class="text-label-md text-on-surface-variant">To Review Today</h3>
+                    <h3 class="text-label-md text-on-surface-variant">Revisados hoje</h3>
                     <div class="w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center group-hover:scale-110 transition-transform">
                         <flux:icon.book-open class="size-4" />
                     </div>
                 </div>
                 <div class="relative z-10">
-                    <p class="text-display-lg text-on-surface">{{ $this->dashboard->dueToday }}</p>
-                    <flux:progress :value="$this->dashboard->todayProgressPercent" class="mt-2" />
-                    <p class="text-label-sm text-on-surface-variant mt-1 text-right">{{ $this->dashboard->todayProgressPercent }}% complete</p>
+                    <p class="text-display-lg text-on-surface">{{ $this->dashboard->reviewedToday }}</p>
+                    <flux:progress :value="$this->dashboard->rememberedTodayPercent" class="mt-2" />
+                    <p class="text-label-sm text-on-surface-variant mt-1 text-right">{{ $this->dashboard->rememberedTodayPercent }}% lembrados</p>
                 </div>
             </div>
 
             <div class="bg-surface-container hover:bg-surface-container-high transition-colors duration-300 p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between group">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-label-md text-on-surface-variant">Daily Streak</h3>
+                    <h3 class="text-label-md text-on-surface-variant">Sequência</h3>
                     <div class="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center group-hover:scale-110 transition-transform">
                         <flux:icon.fire class="size-4" />
                     </div>
                 </div>
                 <div>
-                    <p class="text-display-lg text-on-surface">{{ $this->dashboard->streak->days }} <span class="text-headline-md text-on-surface-variant">{{ Str::plural('day', $this->dashboard->streak->days) }}</span></p>
+                    <p class="text-display-lg text-on-surface">{{ $this->dashboard->streak->days }} <span class="text-headline-md text-on-surface-variant">{{ $this->dashboard->streak->days === 1 ? 'dia' : 'dias' }}</span></p>
                     <div class="flex gap-1 mt-2">
                         @foreach ($this->dashboard->streak->last7 as $active)
                             <div class="h-6 w-1 flex-1 rounded-full {{ $active ? 'bg-primary' : 'bg-surface-variant' }}"></div>
@@ -69,11 +73,11 @@
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="lg:col-span-2 bg-surface-container p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col min-h-[360px]">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-headline-md font-semibold text-on-surface">Learning Activity</h3>
+                    <h3 class="text-headline-md font-semibold text-on-surface">Atividade de estudo</h3>
                     <flux:select wire:model.live="range" class="w-40" size="sm">
-                        <flux:select.option value="7d">Last 7 Days</flux:select.option>
-                        <flux:select.option value="30d">Last 30 Days</flux:select.option>
-                        <flux:select.option value="all">All Time</flux:select.option>
+                        <flux:select.option value="7d">Últimos 7 dias</flux:select.option>
+                        <flux:select.option value="30d">Últimos 30 dias</flux:select.option>
+                        <flux:select.option value="all">Desde o início</flux:select.option>
                     </flux:select>
                 </div>
 
@@ -99,23 +103,23 @@
                 <div class="flex justify-center gap-4 mt-4">
                     <div class="flex items-center gap-1">
                         <div class="w-3 h-3 rounded-full bg-secondary-container"></div>
-                        <span class="text-[12px] text-on-surface-variant">Reviews</span>
+                        <span class="text-[12px] text-on-surface-variant">Revisões</span>
                     </div>
                 </div>
             </div>
 
             <div class="bg-surface-container p-4 lg:p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-[20px] font-semibold text-on-surface">Recent Decks</h3>
-                    <flux:link href="#" variant="ghost" class="text-label-sm">View All</flux:link>
+                    <h3 class="text-[20px] font-semibold text-on-surface">Baralhos recentes</h3>
+                    <flux:link :href="route('decks')" wire:navigate variant="ghost" class="text-label-sm">Ver todos</flux:link>
                 </div>
 
                 <div class="flex flex-col gap-2 overflow-y-auto pr-2 -mr-2">
                     @forelse ($this->dashboard->recentDecks as $deck)
                         <a href="{{ route('study', ['deck' => $deck['slug']]) }}" wire:navigate wire:key="deck-{{ $deck['slug'] }}" class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-variant transition-colors group {{ $deck['dim'] ? 'opacity-70' : '' }}">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant {{ $deck['color'] }}">
-                                    <flux:icon :icon="$deck['icon']" class="size-5" />
+                                <div class="w-10 h-10 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant text-primary">
+                                    <flux:icon.rectangle-stack class="size-5" />
                                 </div>
                                 <div>
                                     <h4 class="text-label-md text-on-surface group-hover:text-primary transition-colors">{{ $deck['name'] }}</h4>
@@ -128,14 +132,16 @@
                             <flux:icon.chevron-right class="size-4 text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" />
                         </a>
                     @empty
-                        <p class="text-body-sm text-on-surface-variant p-2">No decks yet.</p>
+                        <p class="text-body-sm text-on-surface-variant p-2">Nenhum baralho ainda.</p>
                     @endforelse
                 </div>
 
                 <div class="mt-auto pt-4 border-t border-outline-variant">
-                    <flux:button :href="route('flashcards.create')" wire:navigate variant="ghost" icon="plus" class="w-full justify-center border border-secondary! text-secondary!">
-                        Create New Deck
-                    </flux:button>
+                    <flux:modal.trigger name="new-deck">
+                        <flux:button variant="ghost" icon="plus" class="w-full justify-center border border-secondary! text-secondary!">
+                            Novo baralho
+                        </flux:button>
+                    </flux:modal.trigger>
                 </div>
             </div>
         </section>

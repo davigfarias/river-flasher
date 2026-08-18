@@ -43,26 +43,28 @@ test('the 7-day range buckets by day and normalizes the tallest bar to 100%', fu
     expect($activity)->toHaveCount(7);
 
     $byLabel = collect($activity)->keyBy('label');
+    $today = $this->now->translatedFormat('D');
+    $twoDaysAgo = $this->now->subDays(2)->translatedFormat('D');
 
-    expect($byLabel['Mon']['count'])->toBe(1) // today
-        ->and($byLabel['Mon']['percent'])->toBe(33)
-        ->and($byLabel['Sat']['count'])->toBe(3) // 2 days before Monday
-        ->and($byLabel['Sat']['percent'])->toBe(100);
+    expect($byLabel[$today]['count'])->toBe(1)
+        ->and($byLabel[$today]['percent'])->toBe(33)
+        ->and($byLabel[$twoDaysAgo]['count'])->toBe(3)
+        ->and($byLabel[$twoDaysAgo]['percent'])->toBe(100);
 });
 
 test('the 30-day range buckets into 4 weekly buckets', function () {
-    ($this->reviewOn)($this->now); // this week -> W4
-    ($this->reviewOn)($this->now->subDays(27)); // the oldest day in window -> W1
+    ($this->reviewOn)($this->now); // this week -> S4
+    ($this->reviewOn)($this->now->subDays(27)); // the oldest day in window -> S1
 
     $activity = app(ComputeActivityChart::class)->handle($this->token->id, ActivityRange::Month, $this->now);
 
     expect($activity)->toHaveCount(4)
-        ->and(collect($activity)->pluck('label')->all())->toBe(['W1', 'W2', 'W3', 'W4']);
+        ->and(collect($activity)->pluck('label')->all())->toBe(['S1', 'S2', 'S3', 'S4']);
 
     $byLabel = collect($activity)->keyBy('label');
 
-    expect($byLabel['W1']['count'])->toBe(1)
-        ->and($byLabel['W4']['count'])->toBe(1);
+    expect($byLabel['S1']['count'])->toBe(1)
+        ->and($byLabel['S4']['count'])->toBe(1);
 });
 
 test('the all-time range buckets by month over the last 6 months', function () {
@@ -72,9 +74,9 @@ test('the all-time range buckets by month over the last 6 months', function () {
     $activity = app(ComputeActivityChart::class)->handle($this->token->id, ActivityRange::All, $this->now);
 
     expect($activity)->toHaveCount(6)
-        ->and($activity[0]['label'])->toBe($this->now->subMonths(5)->format('M'))
+        ->and($activity[0]['label'])->toBe($this->now->subMonths(5)->translatedFormat('M'))
         ->and($activity[0]['count'])->toBe(1)
-        ->and($activity[5]['label'])->toBe($this->now->format('M'))
+        ->and($activity[5]['label'])->toBe($this->now->translatedFormat('M'))
         ->and($activity[5]['count'])->toBe(1);
 });
 

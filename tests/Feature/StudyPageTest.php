@@ -13,14 +13,6 @@ beforeEach(function () {
     session(['access_token_id' => $this->token->id]);
 });
 
-test('it only loads cards that are currently due', function () {
-    $due = Card::factory()->dueNow()->create(['deck_id' => $this->deck->id]);
-    Card::factory()->create(['deck_id' => $this->deck->id, 'due_at' => now()->addDay()]);
-
-    Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
-        ->assertSet('cardIds', [$due->id]);
-});
-
 test('a deck slug belonging to another token 404s', function () {
     $otherToken = AccessToken::factory()->create();
     $otherDeck = Deck::factory()->create(['access_token_id' => $otherToken->id, 'slug' => 'not-yours']);
@@ -28,112 +20,124 @@ test('a deck slug belonging to another token 404s', function () {
     $this->get('/study/'.$otherDeck->slug)->assertNotFound();
 });
 
-test('rating a card persists its new SRS state and advances the session', function () {
-    $card = Card::factory()->dueNow()->create(['deck_id' => $this->deck->id, 'interval_minutes' => 1_440, 'ease_factor' => 2.5]);
+test('answering "lembrei" persists the new counters and advances the session', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id, 'aced_count' => 1, 'missed_count' => 0]);
 
     Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
         ->call('reveal')
-        ->call('rate', 'good')
+        ->call('answer', 'remembered')
         ->assertSet('index', 1);
 
     $card->refresh();
 
-    expect($card->interval_minutes)->toBe(3_600)
+    expect($card->aced_count)->toBe(2)
+        ->and($card->missed_count)->toBe(0)
         ->and(Review::where('card_id', $card->id)->exists())->toBeTrue();
 });
 
-test('a short learning-step rating requeues the card within the same session', function () {
-    $card = Card::factory()->dueNow()->create(['deck_id' => $this->deck->id, 'interval_minutes' => 0]);
+test('answering "não lembrei" requeues the card within the same session', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
     $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
         ->call('reveal')
-        ->call('rate', 'good'); // new card + Good -> 10m, which requeues
+        ->call('answer', 'forgot');
 
     expect($component->get('cardIds'))->toBe([$card->id, $card->id])
         ->and($component->get('index'))->toBe(1);
 });
 
-test('a mature-interval rating does not requeue the card', function () {
-    $card = Card::factory()->dueNow()->create(['deck_id' => $this->deck->id, 'interval_minutes' => 1_440, 'ease_factor' => 2.5]);
+test('answering "lembrei" does not requeue the card', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
     $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
         ->call('reveal')
-        ->call('rate', 'good');
+        ->call('answer', 'remembered');
 
     expect($component->get('cardIds'))->toBe([$card->id]);
 });
 
-test('the rating buttons show real computed interval labels', function () {
-    Card::factory()->dueNow()->create(['deck_id' => $this->deck->id, 'interval_minutes' => 0]);
+test('the two answer buttons are shown once revealed', function () {
+    Card::factory()->create(['deck_id' => $this->deck->id]);
 
     Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
         ->call('reveal')
-        ->assertSee('Again (1m)')
-        ->assertSee('Hard (6m)')
-        ->assertSee('Good (10m)')
-        ->assertSee('Easy (4d)');
+        ->assertSee('Não lembrei')
+        ->assertSee('Lembrei');
 });
 
-test('an empty due queue shows the session-complete state', function () {
+test('the card back leads with the definition and skips null fields cleanly', function () {
+    Card::factory()->create([
+        'deck_id' => $this->deck->id,
+        'definition' => 'The first letter of the Hebrew alphabet.',
+        'transliteration' => null,
+        'example' => null,
+        'translation' => null,
+    ]);
+
     Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
-        ->assertSee('Session complete')
+        ->call('reveal')
+        ->assertSee('The first letter of the Hebrew alphabet.')
+        ->assertDontSee('>//<', false)
+        ->assertDontSee('>""<', false);
+});
+
+test('an empty deck shows the session-complete state', function () {
+    Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+        ->assertSee('Sessão concluída')
         ->assertSet('progress', 100);
 });
 
-test('restart reloads a fresh due queue for the same deck', function () {
-    $card = Card::factory()->dueNow()->create(['deck_id' => $this->deck->id]);
+test('restart reloads the queue for the same deck', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
     $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
         ->call('reveal')
-        ->call('rate', 'easy'); // graduates far into the future
-
-    // The queue itself doesn't shrink as cards are rated — `index` just
-    // walks past them. Past the end, `card` is null (session complete).
-    expect($component->get('cardIds'))->toBe([$card->id])
-        ->and($component->get('index'))->toBe(1);
+        ->call('answer', 'remembered')
+        ->assertSet('index', 1);
 
     $component->call('restart')->assertSet('index', 0);
 
-    // The just-reviewed card is no longer due, so the fresh queue is empty.
-    expect($component->get('cardIds'))->toBe([])
-        ->and($card->fresh()->interval_minutes)->toBeGreaterThan(0);
+    // There's no "due" concept anymore, so every card in the deck is
+    // always eligible — restarting reloads the same card.
+    expect($component->get('cardIds'))->toBe([$card->id]);
 });
 
 test('repeated requeues of a single card do not inflate the completion count', function () {
-    $card = Card::factory()->dueNow()->create(['deck_id' => $this->deck->id, 'interval_minutes' => 0]);
+    $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
     $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
         ->assertSet('totalCards', 1)
-        ->call('reveal')->call('rate', 'again') // 1m, requeues
-        ->call('reveal')->call('rate', 'hard') // 6m, requeues
-        ->call('reveal')->call('rate', 'easy'); // graduates, session ends
+        ->call('reveal')->call('answer', 'forgot')
+        ->call('reveal')->call('answer', 'forgot')
+        ->call('reveal')->call('answer', 'remembered');
 
     $component->assertSet('totalCards', 1)
         ->assertSet('completedCount', 1)
         ->assertSet('progress', 100)
-        ->assertSee('You reviewed all 1 card in this deck.');
+        ->assertSee('Você revisou o único cartão deste baralho.');
 
-    expect($card->fresh()->interval_minutes)->toBeGreaterThanOrEqual(15);
+    expect($card->fresh()->missed_count)->toBe(2)
+        ->and($card->fresh()->aced_count)->toBe(1);
 });
 
 test('progress reflects distinct cards completed, not the growing requeue count', function () {
-    $card = Card::factory()->dueNow()->create(['deck_id' => $this->deck->id, 'interval_minutes' => 0]);
+    Card::factory()->create(['deck_id' => $this->deck->id]);
 
     Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
         ->call('reveal')
-        ->call('rate', 'good') // 10m, requeues -> still 0 of 1 completed
+        ->call('answer', 'forgot') // requeues -> still 0 of 1 completed
         ->assertSet('progress', 0)
         ->call('reveal')
-        ->call('rate', 'easy') // graduates -> 1 of 1 completed
+        ->call('answer', 'remembered') // completes -> 1 of 1
         ->assertSet('progress', 100);
 });
 
-test('studying with no deck param pulls due cards across all of the token\'s decks', function () {
+test('studying with no deck param pulls cards across all of the token\'s decks, most missed first', function () {
     $otherDeck = Deck::factory()->create(['access_token_id' => $this->token->id]);
-    $cardA = Card::factory()->create(['deck_id' => $this->deck->id, 'due_at' => now()->subMinutes(2)]);
-    $cardB = Card::factory()->create(['deck_id' => $otherDeck->id, 'due_at' => now()->subMinute()]);
+    $cardA = Card::factory()->create(['deck_id' => $this->deck->id, 'missed_count' => 1]);
+    $cardB = Card::factory()->create(['deck_id' => $otherDeck->id, 'missed_count' => 0]);
 
     Livewire::test('pages::study')
         ->assertSet('cardIds', [$cardA->id, $cardB->id])
-        ->assertSet('deckName', 'All decks');
+        ->assertSet('deckName', 'Todos os baralhos');
 });

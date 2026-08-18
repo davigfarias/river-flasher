@@ -1,8 +1,9 @@
 @php
     $links = [
-        ['label' => 'Dashboard', 'icon' => 'squares-2x2', 'route' => 'dashboard'],
-        ['label' => 'Study', 'icon' => 'academic-cap', 'route' => 'study'],
-        ['label' => 'Create', 'icon' => 'plus-circle', 'route' => 'flashcards.create'],
+        ['label' => 'Painel', 'icon' => 'squares-2x2', 'route' => 'dashboard'],
+        ['label' => 'Estudar', 'icon' => 'academic-cap', 'route' => 'study'],
+        ['label' => 'Baralhos', 'icon' => 'rectangle-stack', 'route' => 'decks'],
+        ['label' => 'Criar', 'icon' => 'plus-circle', 'route' => 'flashcards.create'],
     ];
 @endphp
 
@@ -25,14 +26,14 @@
 
         <flux:modal.trigger name="new-deck">
             <flux:navlist.item icon="plus" class="cursor-pointer">
-                New Deck
+                Novo baralho
             </flux:navlist.item>
         </flux:modal.trigger>
     </flux:navlist>
 
     <div class="mt-auto pt-4 border-t border-outline-variant">
         <flux:button :href="route('study')" wire:navigate icon="play" variant="primary" class="w-full justify-center">
-            Start Session
+            Iniciar sessão
         </flux:button>
     </div>
 </nav>

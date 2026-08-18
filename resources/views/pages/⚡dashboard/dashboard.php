@@ -6,7 +6,7 @@ use App\Enums\ActivityRange;
 use Livewire\Attributes\{Computed, Layout, Title};
 use Livewire\Component;
 
-new #[Layout('layouts::app')] #[Title('Dashboard')] class extends Component
+new #[Layout('layouts::app')] #[Title('Painel')] class extends Component
 {
     public string $range = '7d';
 

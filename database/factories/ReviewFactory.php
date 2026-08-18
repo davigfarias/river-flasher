@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\CardRating;
+use App\Enums\ReviewResult;
 use App\Models\AccessToken;
 use App\Models\Card;
 use App\Models\Review;
@@ -29,16 +29,12 @@ class ReviewFactory extends Factory
         return [
             'card_id' => Card::factory(),
             'access_token_id' => AccessToken::factory(),
-            'rating' => $this->faker->randomElement([
-                CardRating::Good,
-                CardRating::Good,
-                CardRating::Good,
-                CardRating::Easy,
-                CardRating::Hard,
-                CardRating::Again,
+            'result' => $this->faker->randomElement([
+                ReviewResult::Remembered,
+                ReviewResult::Remembered,
+                ReviewResult::Remembered,
+                ReviewResult::Forgot,
             ]),
-            'ease_factor_after' => $this->faker->randomFloat(2, 1.3, 2.8),
-            'interval_minutes_after' => $this->faker->numberBetween(1, 40320),
             'reviewed_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
         ];
     }

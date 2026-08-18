@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\{Layout, Title};
 use Livewire\Component;
 
-new #[Layout('layouts::guest')] #[Title('Enter Access Code')] class extends Component
+new #[Layout('layouts::guest')] #[Title('Digite o código de acesso')] class extends Component
 {
     public string $code = '';
 
@@ -20,7 +20,7 @@ new #[Layout('layouts::guest')] #[Title('Enter Access Code')] class extends Comp
 
         if (session()->pull('access_token_invalidated')) {
             Flux::toast(
-                text: 'Your session ended because your access code is no longer valid. Enter it again, or a new one if it was regenerated.',
+                text: 'Sua sessão terminou porque o código de acesso não é mais válido. Digite-o novamente, ou um novo código caso ele tenha sido regenerado.',
                 variant: 'warning',
             );
         }
@@ -36,7 +36,7 @@ new #[Layout('layouts::guest')] #[Title('Enter Access Code')] class extends Comp
 
         if (RateLimiter::tooManyAttempts($key, 8)) {
             $this->code = '';
-            Flux::toast(text: 'Too many attempts. Please wait a few minutes.', variant: 'danger');
+            Flux::toast(text: 'Muitas tentativas. Aguarde alguns minutos.', variant: 'danger');
 
             return;
         }

@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace App\Actions\Orchestrators;
 
-use App\Actions\FindDueCards;
+use App\Actions\FindCardsToStudy;
 use App\DTO\StudySessionData;
 use App\Models\Deck;
-use Carbon\CarbonImmutable;
 
 final readonly class StartStudySessionOrchestrator
 {
-    public function __construct(private FindDueCards $findDueCards) {}
+    public function __construct(private FindCardsToStudy $findCardsToStudy) {}
 
     public function handle(int $accessTokenId, ?Deck $deck): StudySessionData
     {
-        $cards = $this->findDueCards->handle($accessTokenId, $deck, CarbonImmutable::now());
+        $cards = $this->findCardsToStudy->handle($accessTokenId, $deck);
 
         return new StudySessionData(
-            deckName: $deck === null ? 'All decks' : $deck->name,
+            deckName: $deck === null ? 'Todos os baralhos' : $deck->name,
             cardIds: $cards->pluck('id')->all(),
         );
     }
