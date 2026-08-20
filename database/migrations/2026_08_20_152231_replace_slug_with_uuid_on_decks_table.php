@@ -21,9 +21,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('decks', function (Blueprint $table) {
-            $table->uuid('uuid')->nullable()->after('id');
-        });
+        if (! Schema::hasColumn('decks', 'uuid')) {
+            Schema::table('decks', function (Blueprint $table) {
+                $table->uuid('uuid')->nullable()->after('id');
+            });
+        }
 
         DB::table('decks')->whereNull('uuid')->pluck('id')->each(
             fn (int $id) => DB::table('decks')->where('id', $id)->update(['uuid' => (string) Str::uuid()]),
@@ -31,10 +33,19 @@ return new class extends Migration
 
         Schema::table('decks', function (Blueprint $table) {
             $table->uuid('uuid')->nullable(false)->change();
-            $table->unique('uuid');
         });
 
+        try {
+            Schema::table('decks', fn (Blueprint $table) => $table->unique('uuid'));
+        } catch (Throwable) {
+            // Already added by a previous, partially-failed deploy run.
+        }
+
         if (Schema::hasColumn('decks', 'slug')) {
+            Schema::table('decks', function (Blueprint $table) {
+                $table->index('access_token_id');
+            });
+
             Schema::table('decks', function (Blueprint $table) {
                 $table->dropUnique(['access_token_id', 'slug']);
             });
