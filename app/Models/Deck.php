@@ -7,6 +7,7 @@ namespace App\Models;
 use Database\Factories\DeckFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,18 +16,34 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property string $uuid
  * @property int $access_token_id
  * @property string $name
- * @property string $slug
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[UseFactory(DeckFactory::class)]
-#[Fillable(['access_token_id', 'name', 'slug'])]
+#[Fillable(['access_token_id', 'name'])]
 class Deck extends Model
 {
     /** @use HasFactory<DeckFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
+
+    /**
+     * Only `uuid` gets an auto-generated value — the incrementing `id`
+     * primary key is untouched.
+     *
+     * @return array<int, string>
+     */
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
 
     /**
      * @return BelongsTo<AccessToken, $this>

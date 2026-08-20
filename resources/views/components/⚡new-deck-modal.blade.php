@@ -31,11 +31,11 @@ new class extends Component
 };
 ?>
 
-<flux:modal name="new-deck" class="md:w-96">
+<flux:modal name="new-deck" class="w-full md:w-96">
     <form wire:submit="create" class="space-y-6">
         <div>
             <flux:heading size="lg">Novo baralho</flux:heading>
-            <flux:text class="mt-2">Dê um nome a ele. Cada cartão escolhe seu próprio idioma.</flux:text>
+            <flux:text class="mt-2">Dê um nome a ele. O primeiro cartão adicionado define o idioma do baralho.</flux:text>
         </div>
 
         <flux:input wire:model="form.name" label="Nome" placeholder="ex.: Grego Koiné — Vocabulário do Novo Testamento" />

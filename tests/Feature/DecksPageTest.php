@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Language;
 use App\Models\AccessToken;
 use App\Models\Card;
 use App\Models\Deck;
@@ -47,4 +48,25 @@ test('an empty deck list shows the empty state with a way to create one', functi
     Livewire::test('pages::decks')
         ->assertSee('Você ainda não tem nenhum baralho.')
         ->assertSee('Criar primeiro baralho');
+});
+
+test('each deck shows a language badge derived from its cards', function () {
+    $greekDeck = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    Card::factory()->create(['deck_id' => $greekDeck->id, 'language' => Language::Greek]);
+
+    $hebrewDeck = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    Card::factory()->create(['deck_id' => $hebrewDeck->id, 'language' => Language::Hebrew]);
+
+    Livewire::test('pages::decks')
+        ->assertSee('Grego')
+        ->assertSee('Hebraico');
+});
+
+test('an empty deck shows no language badge', function () {
+    Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Fresh Deck']);
+
+    Livewire::test('pages::decks')
+        ->assertSee('Fresh Deck')
+        ->assertDontSee('Grego')
+        ->assertDontSee('Hebraico');
 });

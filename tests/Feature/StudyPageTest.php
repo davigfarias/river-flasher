@@ -8,22 +8,22 @@ use Livewire\Livewire;
 
 beforeEach(function () {
     $this->token = AccessToken::factory()->create();
-    $this->deck = Deck::factory()->create(['access_token_id' => $this->token->id, 'slug' => 'greek-nt-vocab']);
+    $this->deck = Deck::factory()->create(['access_token_id' => $this->token->id]);
 
     session(['access_token_id' => $this->token->id]);
 });
 
-test('a deck slug belonging to another token 404s', function () {
+test('a deck uuid belonging to another token 404s', function () {
     $otherToken = AccessToken::factory()->create();
-    $otherDeck = Deck::factory()->create(['access_token_id' => $otherToken->id, 'slug' => 'not-yours']);
+    $otherDeck = Deck::factory()->create(['access_token_id' => $otherToken->id]);
 
-    $this->get('/study/'.$otherDeck->slug)->assertNotFound();
+    $this->get('/study/'.$otherDeck->uuid)->assertNotFound();
 });
 
 test('answering "lembrei" persists the new counters and advances the session', function () {
     $card = Card::factory()->create(['deck_id' => $this->deck->id, 'aced_count' => 1, 'missed_count' => 0]);
 
-    Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'remembered')
         ->assertSet('index', 1);
@@ -38,7 +38,7 @@ test('answering "lembrei" persists the new counters and advances the session', f
 test('answering "não lembrei" requeues the card within the same session', function () {
     $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
-    $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'forgot');
 
@@ -49,7 +49,7 @@ test('answering "não lembrei" requeues the card within the same session', funct
 test('answering "lembrei" does not requeue the card', function () {
     $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
-    $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'remembered');
 
@@ -59,7 +59,7 @@ test('answering "lembrei" does not requeue the card', function () {
 test('the two answer buttons are shown once revealed', function () {
     Card::factory()->create(['deck_id' => $this->deck->id]);
 
-    Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->assertSee('Não lembrei')
         ->assertSee('Lembrei');
@@ -74,7 +74,7 @@ test('the card back leads with the definition and skips null fields cleanly', fu
         'translation' => null,
     ]);
 
-    Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->assertSee('The first letter of the Hebrew alphabet.')
         ->assertDontSee('>//<', false)
@@ -82,7 +82,7 @@ test('the card back leads with the definition and skips null fields cleanly', fu
 });
 
 test('an empty deck shows the session-complete state', function () {
-    Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->assertSee('Sessão concluída')
         ->assertSet('progress', 100);
 });
@@ -90,7 +90,7 @@ test('an empty deck shows the session-complete state', function () {
 test('restart reloads the queue for the same deck', function () {
     $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
-    $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'remembered')
         ->assertSet('index', 1);
@@ -105,7 +105,7 @@ test('restart reloads the queue for the same deck', function () {
 test('repeated requeues of a single card do not inflate the completion count', function () {
     $card = Card::factory()->create(['deck_id' => $this->deck->id]);
 
-    $component = Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->assertSet('totalCards', 1)
         ->call('reveal')->call('answer', 'forgot')
         ->call('reveal')->call('answer', 'forgot')
@@ -123,7 +123,7 @@ test('repeated requeues of a single card do not inflate the completion count', f
 test('progress reflects distinct cards completed, not the growing requeue count', function () {
     Card::factory()->create(['deck_id' => $this->deck->id]);
 
-    Livewire::test('pages::study', ['deck' => 'greek-nt-vocab'])
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'forgot') // requeues -> still 0 of 1 completed
         ->assertSet('progress', 0)

@@ -19,4 +19,12 @@ enum Language: string
     {
         return $this === self::Hebrew;
     }
+
+    public function badgeColor(): string
+    {
+        return match ($this) {
+            self::Greek => 'blue',
+            self::Hebrew => 'amber',
+        };
+    }
 }

@@ -50,28 +50,14 @@ class DemoSeeder extends Seeder
     private function createDecks(AccessToken $token): array
     {
         $decks = [
-            [
-                'slug' => 'greek-nt-vocab',
-                'name' => 'Koine Greek — New Testament Vocab',
-            ],
-            [
-                'slug' => 'hebrew-genesis',
-                'name' => 'Biblical Hebrew — Genesis 1–3',
-            ],
-            [
-                'slug' => 'greek-verbs',
-                'name' => 'Greek Verb Paradigms',
-            ],
-            [
-                'slug' => 'hebrew-alphabet',
-                'name' => 'Hebrew Alphabet & Niqqud',
-            ],
+            'greek-nt-vocab' => 'Koine Greek — New Testament Vocab',
+            'hebrew-genesis' => 'Biblical Hebrew — Genesis 1–3',
+            'greek-verbs' => 'Greek Verb Paradigms',
+            'hebrew-alphabet' => 'Hebrew Alphabet & Niqqud',
         ];
 
         return collect($decks)
-            ->mapWithKeys(fn (array $deck) => [
-                $deck['slug'] => Deck::create([...$deck, 'access_token_id' => $token->id]),
-            ])
+            ->map(fn (string $name) => Deck::create(['access_token_id' => $token->id, 'name' => $name]))
             ->all();
     }
 
@@ -171,10 +157,14 @@ class DemoSeeder extends Seeder
         /** @var Collection<int, Card> $fillerCards */
         $fillerCards = collect();
 
-        foreach ($decks as $deck) {
-            $fillerCards->push(Card::factory()->create(['deck_id' => $deck->id]));
-            $fillerCards->push(Card::factory()->studied()->create(['deck_id' => $deck->id]));
-            $fillerCards->push(Card::factory()->struggling()->create(['deck_id' => $deck->id]));
+        foreach ($decks as $key => $deck) {
+            // A deck's language is derived from its first card, so filler
+            // must match the deck's real language rather than roll randomly.
+            $language = str_starts_with($key, 'hebrew-') ? Language::Hebrew : Language::Greek;
+
+            $fillerCards->push(Card::factory()->create(['deck_id' => $deck->id, 'language' => $language]));
+            $fillerCards->push(Card::factory()->studied()->create(['deck_id' => $deck->id, 'language' => $language]));
+            $fillerCards->push(Card::factory()->struggling()->create(['deck_id' => $deck->id, 'language' => $language]));
         }
 
         // Guarantee today and yesterday are always populated, so the

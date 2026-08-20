@@ -29,5 +29,5 @@ test('it creates a deck scoped to the current token and resets the form', functi
 
     expect($deck->access_token_id)->toBe($this->token->id)
         ->and($deck->name)->toBe('Psalms of Ascent')
-        ->and($deck->slug)->toBe('psalms-of-ascent');
+        ->and($deck->uuid)->toBeUuid();
 });

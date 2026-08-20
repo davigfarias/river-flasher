@@ -11,7 +11,7 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
     public string $deckName = '';
 
     #[Locked]
-    public ?string $deckSlug = null;
+    public ?string $deckUuid = null;
 
     /** @var array<int, int> */
     #[Locked]
@@ -84,13 +84,13 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
 
     public function restart(StartStudySessionOrchestrator $orchestrator): void
     {
-        $this->startSession($orchestrator, $this->deckSlug);
+        $this->startSession($orchestrator, $this->deckUuid);
     }
 
-    private function startSession(StartStudySessionOrchestrator $orchestrator, ?string $deckSlug): void
+    private function startSession(StartStudySessionOrchestrator $orchestrator, ?string $deckUuid): void
     {
-        $deck = $deckSlug !== null
-            ? Deck::where('slug', $deckSlug)
+        $deck = $deckUuid !== null
+            ? Deck::where('uuid', $deckUuid)
                 ->where('access_token_id', session('access_token_id'))
                 ->firstOrFail()
             : null;
@@ -98,7 +98,7 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
         $session = $orchestrator
             ->handle((int) session('access_token_id'), $deck);
 
-        $this->deckSlug = $deckSlug;
+        $this->deckUuid = $deckUuid;
         $this->deckName = $session->deckName;
         $this->cardIds = $session->cardIds;
         $this->totalCards = count($session->cardIds);

@@ -1,6 +1,7 @@
 <?php
 
-use App\Actions\{CreateCard, GetRecentCards};
+use App\Actions\{CreateCard, GetDeckLanguage, GetRecentCards};
+use App\Enums\Language;
 use App\Livewire\Forms\CardForm;
 use App\Models\{Card, Deck};
 use Flux\Flux;
@@ -27,7 +28,7 @@ new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
         return Deck::query()
             ->where('access_token_id', session('access_token_id'))
             ->orderBy('name')
-            ->pluck('name', 'slug');
+            ->pluck('name', 'uuid');
     }
 
     /**
@@ -41,13 +42,25 @@ new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
         return $deck ? app(GetRecentCards::class)->handle($deck) : new Collection;
     }
 
-    public function addToDeck(CreateCard $action): void
+    public function addToDeck(CreateCard $action, GetDeckLanguage $deckLanguage): void
     {
         $this->form->validate();
 
         $deck = $this->currentDeck();
 
         abort_if(! $deck, 404);
+
+        $existingLanguage = $deckLanguage->handle($deck);
+
+        if ($existingLanguage !== null && $existingLanguage !== Language::from($this->form->language)) {
+            Flux::toast(
+                heading: 'Idioma diferente do baralho',
+                text: 'Este baralho já contém cartões em '.$existingLanguage->label().'. Escolha outro baralho ou ajuste o idioma.',
+                variant: 'danger',
+            );
+
+            return;
+        }
 
         $action->handle($deck, $this->form->toData());
 
@@ -62,7 +75,7 @@ new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
 
     private function currentDeck(): ?Deck
     {
-        return Deck::where('slug', $this->form->deck)
+        return Deck::where('uuid', $this->form->deck)
             ->where('access_token_id', session('access_token_id'))
             ->first();
     }

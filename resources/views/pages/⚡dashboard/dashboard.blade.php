@@ -90,7 +90,7 @@
                     </div>
                     <div class="w-full pl-10 flex items-end justify-between h-full gap-2 sm:gap-4 relative z-10">
                         @foreach ($this->dashboard->activity as $day)
-                            <div class="flex flex-col items-center gap-2 flex-1 group" wire:key="activity-{{ $day['label'] }}">
+                            <div class="flex flex-col items-center justify-end gap-2 flex-1 self-stretch group" wire:key="activity-{{ $day['label'] }}">
                                 <div class="w-full bg-primary-container hover:bg-primary transition-colors rounded-t-sm relative" style="height: {{ max($day['percent'], 2) }}%">
                                     <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-[10px] px-2 py-1 rounded transition-opacity pointer-events-none">{{ $day['count'] }}</div>
                                 </div>
@@ -116,7 +116,7 @@
 
                 <div class="flex flex-col gap-2 overflow-y-auto pr-2 -mr-2">
                     @forelse ($this->dashboard->recentDecks as $deck)
-                        <a href="{{ route('study', ['deck' => $deck['slug']]) }}" wire:navigate wire:key="deck-{{ $deck['slug'] }}" class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-variant transition-colors group {{ $deck['dim'] ? 'opacity-70' : '' }}">
+                        <a href="{{ route('study', ['deck' => $deck['uuid']]) }}" wire:navigate wire:key="deck-{{ $deck['uuid'] }}" class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-variant transition-colors group {{ $deck['dim'] ? 'opacity-70' : '' }}">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant text-primary">
                                     <flux:icon.rectangle-stack class="size-5" />
