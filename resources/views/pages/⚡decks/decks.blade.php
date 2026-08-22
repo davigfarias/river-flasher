@@ -4,13 +4,18 @@
 
 <div class="p-4 md:p-6 lg:p-12">
     <div class="max-w-[1200px] mx-auto space-y-6">
-        <section class="flex justify-between items-center gap-4">
+        <section class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h2 class="text-display-lg text-on-surface">Baralhos</h2>
-            <flux:modal.trigger name="new-deck">
-                <flux:button variant="primary" icon="plus" class="w-full md:w-auto justify-center">
-                    Novo baralho
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <flux:button :href="route('decks.from-tag')" wire:navigate variant="ghost" icon="tag" class="w-full sm:w-auto justify-center">
+                    Baralho por tema
                 </flux:button>
-            </flux:modal.trigger>
+                <flux:modal.trigger name="new-deck">
+                    <flux:button variant="primary" icon="plus" class="w-full sm:w-auto justify-center">
+                        Novo baralho
+                    </flux:button>
+                </flux:modal.trigger>
+            </div>
         </section>
 
         @if ($this->decks->isEmpty())

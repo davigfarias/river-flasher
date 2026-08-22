@@ -25,7 +25,7 @@ final readonly class GetDecksSummary
         return Deck::query()
             ->where('access_token_id', $accessTokenId)
             ->withCount('cards')
-            ->withCount(['cards as reinforce_count' => fn ($query) => $query->toReinforce()])
+            ->withCount(['cards as reinforce_count' => fn ($query) => $query->active()->toReinforce()])
             ->withMax('cards', 'last_reviewed_at')
             ->addSelect(['language' => Card::query()
                 ->select('language')

@@ -19,3 +19,12 @@ test('it counts only cards with more misses than aces, scoped to the token', fun
 
     expect(app(CountCardsToReinforce::class)->handle($token->id))->toBe(1);
 });
+
+test('deactivated cards are not counted even if they need reinforcing', function () {
+    $token = AccessToken::factory()->create();
+    $deck = Deck::factory()->create(['access_token_id' => $token->id]);
+
+    Card::factory()->inactive()->create(['deck_id' => $deck->id, 'aced_count' => 0, 'missed_count' => 2]);
+
+    expect(app(CountCardsToReinforce::class)->handle($token->id))->toBe(0);
+});

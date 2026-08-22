@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $example
  * @property string|null $translation
  * @property bool $is_difficult
+ * @property bool $is_active
  * @property int $aced_count
  * @property int $missed_count
  * @property CarbonImmutable|null $last_reviewed_at
@@ -44,6 +45,7 @@ use Illuminate\Support\Carbon;
     'example',
     'translation',
     'is_difficult',
+    'is_active',
     'aced_count',
     'missed_count',
     'last_reviewed_at',
@@ -58,6 +60,7 @@ class Card extends Model
         return [
             'language' => Language::class,
             'is_difficult' => 'boolean',
+            'is_active' => 'boolean',
             'aced_count' => 'integer',
             'missed_count' => 'integer',
             'last_reviewed_at' => 'immutable_datetime',
@@ -91,5 +94,18 @@ class Card extends Model
     public function scopeToReinforce(Builder $query): Builder
     {
         return $query->whereColumn('missed_count', '>', 'aced_count');
+    }
+
+    /**
+     * A deactivated card is kept (with its history) but left out of study
+     * sessions and reinforcement counts — useful while bulk-feeding cards
+     * that aren't ready to be studied yet.
+     *
+     * @param  Builder<Card>  $query
+     * @return Builder<Card>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
     }
 }

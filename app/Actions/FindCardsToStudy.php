@@ -18,6 +18,7 @@ final readonly class FindCardsToStudy
         return Card::query()
             ->whereHas('deck', fn ($query) => $query->where('access_token_id', $accessTokenId))
             ->when($deck, fn ($query) => $query->where('deck_id', $deck->id))
+            ->active()
             ->orderByRaw('missed_count desc')
             ->orderByRaw('last_reviewed_at is not null')
             ->orderByRaw('aced_count + missed_count asc')

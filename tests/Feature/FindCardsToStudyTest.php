@@ -58,3 +58,14 @@ test('it caps the queue at the given limit', function () {
 
     expect($cards)->toHaveCount(2);
 });
+
+test('deactivated cards are excluded, in both study-all and per-deck sessions', function () {
+    $active = Card::factory()->create(['deck_id' => $this->deck->id]);
+    Card::factory()->inactive()->create(['deck_id' => $this->deck->id]);
+
+    $allDecks = app(FindCardsToStudy::class)->handle($this->token->id, null);
+    $thisDeck = app(FindCardsToStudy::class)->handle($this->token->id, $this->deck);
+
+    expect($allDecks->pluck('id')->all())->toBe([$active->id])
+        ->and($thisDeck->pluck('id')->all())->toBe([$active->id]);
+});

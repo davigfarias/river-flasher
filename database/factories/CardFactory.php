@@ -31,10 +31,21 @@ class CardFactory extends Factory
             'example' => $this->faker->sentence(),
             'translation' => $this->faker->sentence(),
             'is_difficult' => false,
+            'is_active' => true,
             'aced_count' => 0,
             'missed_count' => 0,
             'last_reviewed_at' => null,
         ];
+    }
+
+    /**
+     * A card deactivated from study, e.g. while it's still being edited.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'is_active' => false,
+        ]);
     }
 
     /**

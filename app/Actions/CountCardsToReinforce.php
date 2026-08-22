@@ -12,6 +12,7 @@ final readonly class CountCardsToReinforce
     {
         return Card::query()
             ->whereHas('deck', fn ($query) => $query->where('access_token_id', $accessTokenId))
+            ->active()
             ->toReinforce()
             ->count();
     }
