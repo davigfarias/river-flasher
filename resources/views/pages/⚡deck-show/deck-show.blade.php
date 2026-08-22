@@ -102,6 +102,10 @@
                                 <flux:badge size="sm" color="zinc" class="self-start">Desativado</flux:badge>
                             @endif
 
+                            @if ($card->imageUrl())
+                                <img src="{{ $card->imageUrl() }}" alt="" class="h-32 w-full rounded-lg object-cover">
+                            @endif
+
                             @if ($card->pos)
                                 <span class="text-label-sm text-tertiary uppercase tracking-wide">{{ $card->pos }}</span>
                             @endif

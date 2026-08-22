@@ -10,6 +10,7 @@ use App\Models\Card;
 use App\Models\Deck;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
 
 class CardForm extends Form
@@ -32,6 +33,14 @@ class CardForm extends Form
 
     public bool $markDifficult = false;
 
+    public ?TemporaryUploadedFile $image = null;
+
+    /**
+     * Only meaningful while editing: clears an existing image without
+     * replacing it. Ignored when a new `image` upload is also present.
+     */
+    public bool $removeImage = false;
+
     /**
      * @return array<string, array<int, mixed>>
      */
@@ -46,6 +55,7 @@ class CardForm extends Form
             'example' => ['nullable', 'string', 'max:1000'],
             'translation' => ['nullable', 'string', 'max:500'],
             'pos' => ['nullable', 'string', 'max:50'],
+            'image' => ['nullable', 'image', 'max:8192'],
         ];
     }
 
@@ -60,9 +70,11 @@ class CardForm extends Form
         $this->translation = $card->translation ?? '';
         $this->pos = $card->pos ?? '';
         $this->markDifficult = $card->is_difficult;
+        $this->image = null;
+        $this->removeImage = false;
     }
 
-    public function toData(): CardData
+    public function toData(?string $imagePath): CardData
     {
         return new CardData(
             language: Language::from($this->language),
@@ -73,6 +85,7 @@ class CardForm extends Form
             translation: $this->translation !== '' ? $this->translation : null,
             pos: $this->pos !== '' ? $this->pos : null,
             isDifficult: $this->markDifficult,
+            imagePath: $imagePath,
         );
     }
 

@@ -49,6 +49,16 @@ class CardFactory extends Factory
     }
 
     /**
+     * A card with an image already stored.
+     */
+    public function withImage(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'image_path' => 'cards/'.$this->faker->uuid().'.webp',
+        ]);
+    }
+
+    /**
      * A card the user has been getting right.
      */
     public function studied(): static

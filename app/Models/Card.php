@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string $definition
  * @property string|null $example
  * @property string|null $translation
+ * @property string|null $image_path
  * @property bool $is_difficult
  * @property bool $is_active
  * @property int $aced_count
@@ -44,6 +46,7 @@ use Illuminate\Support\Carbon;
     'definition',
     'example',
     'translation',
+    'image_path',
     'is_difficult',
     'is_active',
     'aced_count',
@@ -81,6 +84,11 @@ class Card extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function imageUrl(): ?string
+    {
+        return $this->image_path === null ? null : Storage::url($this->image_path);
     }
 
     /**

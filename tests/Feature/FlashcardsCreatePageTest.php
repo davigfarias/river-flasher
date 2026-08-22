@@ -4,6 +4,8 @@ use App\Enums\Language;
 use App\Models\AccessToken;
 use App\Models\Card;
 use App\Models\Deck;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -127,4 +129,23 @@ test('a card matching the deck\'s existing language is saved', function () {
         ->assertHasNoErrors();
 
     expect(Card::count())->toBe(2);
+});
+
+test('an uploaded image is stored and attached to the created card', function () {
+    Storage::fake('public');
+
+    Livewire::test('pages::flashcards-create')
+        ->set('form.word', 'ἄμπελος')
+        ->set('form.definition', 'Vine.')
+        ->set('form.image', UploadedFile::fake()->image('vine.jpg', 2000, 2000))
+        ->call('addToDeck')
+        ->assertHasNoErrors()
+        ->assertSet('form.image', null);
+
+    $card = Card::sole();
+
+    expect($card->image_path)->not->toBeNull()
+        ->and($card->image_path)->toStartWith('cards/');
+
+    Storage::disk('public')->assertExists($card->image_path);
 });

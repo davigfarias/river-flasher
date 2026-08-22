@@ -27,6 +27,9 @@
                         <flux:icon.tag class="size-3.5 text-tertiary" />
                         <span class="text-label-sm text-tertiary">{{ $this->card->pos }}</span>
                     </div>
+                    @if ($this->card->imageUrl())
+                        <img src="{{ $this->card->imageUrl() }}" alt="" class="max-h-40 md:max-h-48 rounded-lg object-contain mb-4">
+                    @endif
                     <h2
                         @class(['text-display-lg text-on-surface text-center', 'font-hebrew' => $this->card->language->isRtl()])
                         dir="{{ $this->card->language->isRtl() ? 'rtl' : 'ltr' }}"

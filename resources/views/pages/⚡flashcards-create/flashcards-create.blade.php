@@ -73,6 +73,14 @@
                 />
 
                 <flux:input wire:model="form.translation" label="Tradução" placeholder="Digite a tradução do exemplo…" />
+
+                <div class="space-y-2">
+                    <flux:input wire:model="form.image" type="file" accept="image/*" label="Imagem (opcional)" />
+
+                    @if ($form->image)
+                        <img src="{{ $form->image->temporaryUrl() }}" alt="Pré-visualização" class="h-24 rounded-lg border border-outline-variant object-cover">
+                    @endif
+                </div>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-t border-outline-variant">

@@ -35,6 +35,13 @@ test('it shows every card with its full content', function () {
         ->assertSee('Love is patient.');
 });
 
+test('a card with an image shows its thumbnail', function () {
+    $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id]);
+
+    Livewire::test('pages::deck-show', ['deck' => $this->deck->uuid])
+        ->assertSee($card->imageUrl(), false);
+});
+
 test('a deck uuid belonging to another token 404s', function () {
     $otherToken = AccessToken::factory()->create();
     $otherDeck = Deck::factory()->create(['access_token_id' => $otherToken->id]);

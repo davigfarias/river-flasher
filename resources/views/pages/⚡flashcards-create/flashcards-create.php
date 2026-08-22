@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\{CreateCard, GetDeckLanguage, GetRecentCards};
+use App\Actions\{CreateCard, GetDeckLanguage, GetRecentCards, StoreCardImage};
 use App\Enums\Language;
 use App\Livewire\Forms\CardForm;
 use App\Models\{Card, Deck};
@@ -9,9 +9,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Livewire\Attributes\{Computed, Layout, Title};
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
 {
+    use WithFileUploads;
+
     public CardForm $form;
 
     public function mount(): void
@@ -42,7 +45,7 @@ new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
         return $deck ? app(GetRecentCards::class)->handle($deck) : new Collection;
     }
 
-    public function addToDeck(CreateCard $action, GetDeckLanguage $deckLanguage): void
+    public function addToDeck(CreateCard $action, GetDeckLanguage $deckLanguage, StoreCardImage $storeCardImage): void
     {
         $this->form->validate();
 
@@ -62,7 +65,9 @@ new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
             return;
         }
 
-        $action->handle($deck, $this->form->toData());
+        $imagePath = $this->form->image ? $storeCardImage->handle($this->form->image) : null;
+
+        $action->handle($deck, $this->form->toData($imagePath));
 
         Flux::toast(
             heading: 'Cartão adicionado',
@@ -70,7 +75,7 @@ new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
             variant: 'success',
         );
 
-        $this->form->reset(['word', 'transliteration', 'definition', 'example', 'translation', 'pos', 'markDifficult']);
+        $this->form->reset(['word', 'transliteration', 'definition', 'example', 'translation', 'pos', 'markDifficult', 'image']);
     }
 
     private function currentDeck(): ?Deck

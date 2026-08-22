@@ -65,6 +65,13 @@ test('the two answer buttons are shown once revealed', function () {
         ->assertSee('Lembrei');
 });
 
+test('a card with an image shows it on the front face', function () {
+    $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->assertSee($card->imageUrl(), false);
+});
+
 test('the card back leads with the definition and skips null fields cleanly', function () {
     Card::factory()->create([
         'deck_id' => $this->deck->id,

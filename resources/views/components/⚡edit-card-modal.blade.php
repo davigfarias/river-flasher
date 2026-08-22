@@ -1,19 +1,24 @@
 <?php
 
-use App\Actions\UpdateCard;
+use App\Actions\{DeleteCardImage, StoreCardImage, UpdateCard};
 use App\Enums\Language;
 use App\Livewire\Forms\CardForm;
 use App\Models\Card;
 use Flux\Flux;
 use Livewire\Attributes\{Locked, On};
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public CardForm $form;
 
     #[Locked]
     public ?int $cardId = null;
+
+    public ?string $currentImageUrl = null;
 
     #[On('edit-card')]
     public function open(int $cardId): void
@@ -22,18 +27,29 @@ new class extends Component
 
         $this->cardId = $card->id;
         $this->form->fillFromCard($card);
+        $this->currentImageUrl = $card->imageUrl();
         $this->resetValidation();
 
         Flux::modal('edit-card')->show();
     }
 
-    public function save(UpdateCard $action): void
+    public function save(UpdateCard $action, StoreCardImage $storeCardImage, DeleteCardImage $deleteCardImage): void
     {
         $this->form->validate();
 
         $card = $this->findCard($this->cardId ?? 0);
 
-        $action->handle($card, $this->form->toData());
+        $imagePath = $card->image_path;
+
+        if ($this->form->image) {
+            $deleteCardImage->handle($card->image_path);
+            $imagePath = $storeCardImage->handle($this->form->image);
+        } elseif ($this->form->removeImage) {
+            $deleteCardImage->handle($card->image_path);
+            $imagePath = null;
+        }
+
+        $action->handle($card, $this->form->toData($imagePath));
 
         Flux::toast(
             heading: 'Cartão atualizado',
@@ -90,6 +106,19 @@ new class extends Component
         />
 
         <flux:input wire:model="form.translation" label="Tradução" />
+
+        <div class="space-y-2">
+            <flux:input wire:model="form.image" type="file" accept="image/*" label="Imagem (opcional)" />
+
+            @if ($form->image)
+                <img src="{{ $form->image->temporaryUrl() }}" alt="Pré-visualização" class="h-24 rounded-lg border border-outline-variant object-cover">
+            @elseif ($currentImageUrl && ! $form->removeImage)
+                <div class="flex items-center gap-3">
+                    <img src="{{ $currentImageUrl }}" alt="Imagem atual" class="h-24 rounded-lg border border-outline-variant object-cover">
+                    <flux:checkbox wire:model="form.removeImage" label="Remover imagem" />
+                </div>
+            @endif
+        </div>
 
         <flux:checkbox wire:model="form.markDifficult" label="Marcar como difícil" />
 

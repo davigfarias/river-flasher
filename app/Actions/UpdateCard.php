@@ -19,6 +19,7 @@ final readonly class UpdateCard
             'definition' => $data->definition,
             'example' => $data->example,
             'translation' => $data->translation,
+            'image_path' => $data->imagePath,
             'is_difficult' => $data->isDifficult,
         ]);
 
