@@ -67,6 +67,41 @@ test('an empty deck shows no language badge', function () {
 
     Livewire::test('pages::decks')
         ->assertSee('Fresh Deck')
-        ->assertDontSee('Grego')
-        ->assertDontSee('Hebraico');
+        ->assertDontSee('data-flux-badge', false);
+});
+
+test('both language toggles are on by default, so every deck shows', function () {
+    $greekDeck = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Koine Greek']);
+    Card::factory()->create(['deck_id' => $greekDeck->id, 'language' => Language::Greek]);
+
+    $hebrewDeck = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Biblical Hebrew']);
+    Card::factory()->create(['deck_id' => $hebrewDeck->id, 'language' => Language::Hebrew]);
+
+    Livewire::test('pages::decks')
+        ->assertSet('showGreek', true)
+        ->assertSet('showHebrew', true)
+        ->assertSee('Koine Greek')
+        ->assertSee('Biblical Hebrew');
+});
+
+test('turning off a language toggle hides decks in that language', function () {
+    $greekDeck = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Koine Greek']);
+    Card::factory()->create(['deck_id' => $greekDeck->id, 'language' => Language::Greek]);
+
+    $hebrewDeck = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Biblical Hebrew']);
+    Card::factory()->create(['deck_id' => $hebrewDeck->id, 'language' => Language::Hebrew]);
+
+    Livewire::test('pages::decks')
+        ->set('showHebrew', false)
+        ->assertSee('Koine Greek')
+        ->assertDontSee('Biblical Hebrew');
+});
+
+test('a deck with no cards yet is never hidden by the language toggles', function () {
+    Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Fresh Deck']);
+
+    Livewire::test('pages::decks')
+        ->set('showGreek', false)
+        ->set('showHebrew', false)
+        ->assertSee('Fresh Deck');
 });

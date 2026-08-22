@@ -3,10 +3,15 @@
 </x-slot:mobileHeader>
 
 <div class="p-4 md:p-6 lg:p-12">
-    <div class="max-w-[1200px] mx-auto space-y-6">
+    <div class="max-w-300 mx-auto space-y-6">
         <section class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h2 class="text-display-lg text-on-surface">Baralhos</h2>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div class="flex items-center gap-2">
+                    <p class="text-display">Filtrar: </p>
+                    <flux:toggle wire:model.live="showGreek" icon="language" color="red" label="Grego" tooltip="Mostrar baralhos em grego" />
+                    <flux:toggle wire:model.live="showHebrew" icon="language" color="red" label="Hebraico" tooltip="Mostrar baralhos em hebraico" />
+                </div>
                 <flux:button :href="route('decks.from-tag')" wire:navigate variant="ghost" icon="tag" class="w-full sm:w-auto justify-center">
                     Baralho por tema
                 </flux:button>
