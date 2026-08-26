@@ -81,6 +81,25 @@ test('a blank deck name is rejected', function () {
         ->assertHasErrors(['deckName' => 'required']);
 });
 
+test('the by=category mode lists categories and filters cards by category instead of pos', function () {
+    $match = Card::factory()->create(['deck_id' => $this->deck->id, 'language' => Language::Greek, 'category' => 'Partes do corpo', 'word' => 'χείρ']);
+    Card::factory()->create(['deck_id' => $this->deck->id, 'language' => Language::Greek, 'category' => 'Objetos de casa', 'word' => 'τράπεζα']);
+
+    Livewire::withQueryParams(['by' => 'category'])
+        ->test('pages::deck-from-tag')
+        ->assertSet('by', 'category')
+        ->assertSee('Partes do corpo')
+        ->set('tag', 'Partes do corpo')
+        ->assertSee('χείρ')
+        ->assertDontSee('τράπεζα');
+});
+
+test('an invalid by value falls back to pos mode', function () {
+    Livewire::withQueryParams(['by' => 'not-a-real-mode'])
+        ->test('pages::deck-from-tag')
+        ->assertSet('by', 'pos');
+});
+
 test('cards belonging to another token cannot be moved even if the id is tampered with', function () {
     $otherToken = AccessToken::factory()->create();
     $otherDeck = Deck::factory()->create(['access_token_id' => $otherToken->id]);

@@ -92,6 +92,7 @@ new class extends Component
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <flux:input wire:model="form.transliteration" label="Transliteração" />
             <flux:input wire:model="form.pos" label="Classe gramatical" />
+            <flux:input wire:model="form.category" label="Categoria" class="sm:col-span-2" />
         </div>
 
         <flux:textarea wire:model="form.definition" label="Significado" rows="3" />

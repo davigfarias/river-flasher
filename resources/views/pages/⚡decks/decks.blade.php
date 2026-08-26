@@ -12,9 +12,11 @@
                     <flux:toggle wire:model.live="showGreek" icon="language" color="red" label="Grego" tooltip="Mostrar baralhos em grego" />
                     <flux:toggle wire:model.live="showHebrew" icon="language" color="red" label="Hebraico" tooltip="Mostrar baralhos em hebraico" />
                 </div>
-                <flux:button :href="route('decks.from-tag')" wire:navigate variant="ghost" icon="tag" class="w-full sm:w-auto justify-center">
-                    Baralho por tema
-                </flux:button>
+                <flux:modal.trigger name="deck-from-tag-mode">
+                    <flux:button variant="ghost" icon="tag" class="w-full sm:w-auto justify-center">
+                        Baralho por tema
+                    </flux:button>
+                </flux:modal.trigger>
                 <flux:modal.trigger name="new-deck">
                     <flux:button variant="primary" icon="plus" class="w-full sm:w-auto justify-center">
                         Novo baralho

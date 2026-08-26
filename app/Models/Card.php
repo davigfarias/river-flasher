@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
  * @property int $deck_id
  * @property Language $language
  * @property string|null $pos
+ * @property string|null $category
  * @property string $word
  * @property string|null $transliteration
  * @property string $definition
@@ -41,6 +42,7 @@ use Illuminate\Support\Facades\Storage;
     'deck_id',
     'language',
     'pos',
+    'category',
     'word',
     'transliteration',
     'definition',

@@ -16,6 +16,7 @@ test('it updates every editable field of the card', function () {
         example: 'τῇ γὰρ χάριτί ἐστε σεσῳσμένοι',
         translation: 'For by grace you have been saved.',
         pos: 'Noun',
+        category: 'Grace concepts',
         isDifficult: true,
         imagePath: 'cards/example.webp',
     ));
@@ -26,6 +27,7 @@ test('it updates every editable field of the card', function () {
         ->and($updated->example)->toBe('τῇ γὰρ χάριτί ἐστε σεσῳσμένοι')
         ->and($updated->translation)->toBe('For by grace you have been saved.')
         ->and($updated->pos)->toBe('Noun')
+        ->and($updated->category)->toBe('Grace concepts')
         ->and($updated->is_difficult)->toBeTrue()
         ->and($updated->image_path)->toBe('cards/example.webp');
 });

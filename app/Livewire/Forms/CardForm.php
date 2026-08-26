@@ -31,6 +31,8 @@ class CardForm extends Form
 
     public string $pos = '';
 
+    public string $category = '';
+
     public bool $markDifficult = false;
 
     public ?TemporaryUploadedFile $image = null;
@@ -55,6 +57,7 @@ class CardForm extends Form
             'example' => ['nullable', 'string', 'max:1000'],
             'translation' => ['nullable', 'string', 'max:500'],
             'pos' => ['nullable', 'string', 'max:50'],
+            'category' => ['nullable', 'string', 'max:50'],
             'image' => ['nullable', 'image', 'max:8192'],
         ];
     }
@@ -69,6 +72,7 @@ class CardForm extends Form
         $this->example = $card->example ?? '';
         $this->translation = $card->translation ?? '';
         $this->pos = $card->pos ?? '';
+        $this->category = $card->category ?? '';
         $this->markDifficult = $card->is_difficult;
         $this->image = null;
         $this->removeImage = false;
@@ -84,6 +88,7 @@ class CardForm extends Form
             example: $this->example !== '' ? $this->example : null,
             translation: $this->translation !== '' ? $this->translation : null,
             pos: $this->pos !== '' ? $this->pos : null,
+            category: $this->category !== '' ? $this->category : null,
             isDifficult: $this->markDifficult,
             imagePath: $imagePath,
         );

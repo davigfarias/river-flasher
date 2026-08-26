@@ -1,12 +1,18 @@
 <x-slot:mobileHeader>
-    <h1 class="text-headline-lg-mobile font-bold text-primary truncate">Baralho por tema</h1>
+    <h1 class="text-headline-lg-mobile font-bold text-primary truncate">Baralho por {{ $this->label() }}</h1>
 </x-slot:mobileHeader>
 
 <div class="p-4 md:p-6 lg:p-12">
     <div class="max-w-[1200px] mx-auto space-y-6">
         <section class="flex flex-col gap-1">
-            <h2 class="text-display-lg text-on-surface">Criar baralho por tema</h2>
-            <p class="text-body-md text-on-surface-variant">Escolha um idioma e uma classe gramatical, selecione os cartões e monte um novo baralho com eles.</p>
+            <h2 class="text-display-lg text-on-surface">Criar baralho por {{ $this->label() }}</h2>
+            <p class="text-body-md text-on-surface-variant">
+                @if ($by === 'category')
+                    Escolha um idioma e uma categoria lexical, selecione os cartões e monte um novo baralho com eles.
+                @else
+                    Escolha um idioma e uma classe gramatical, selecione os cartões e monte um novo baralho com eles.
+                @endif
+            </p>
         </section>
 
         <section class="bg-surface-container p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col gap-6">
@@ -16,7 +22,7 @@
                     <flux:radio value="he">Hebraico</flux:radio>
                 </flux:radio.group>
 
-                <flux:select wire:model.live="tag" label="Tema (classe gramatical)" placeholder="Selecione um tema…">
+                <flux:select wire:model.live="tag" :label="$by === 'category' ? 'Categoria' : 'Tema (classe gramatical)'" :placeholder="'Selecione '.$this->labelWithArticle().'…'">
                     @foreach ($this->tags as $option)
                         <flux:select.option :value="$option">{{ $option }}</flux:select.option>
                     @endforeach
@@ -31,11 +37,11 @@
             <div wire:loading.remove wire:target="language, tag">
                 @if ($this->tag === '')
                     <div class="p-8 text-center text-body-sm text-on-surface-variant">
-                        Selecione um tema para ver os cartões disponíveis.
+                        Selecione {{ $this->labelWithArticle() }} para ver os cartões disponíveis.
                     </div>
                 @elseif ($this->cards->isEmpty())
                     <div class="p-8 text-center text-body-sm text-on-surface-variant">
-                        Nenhum cartão com o tema "{{ $tag }}" neste idioma.
+                        Nenhum cartão com {{ $by === 'category' ? 'a categoria' : 'o tema' }} "{{ $tag }}" neste idioma.
                     </div>
                 @else
                     <div class="flex items-center justify-between">

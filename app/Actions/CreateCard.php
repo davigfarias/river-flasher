@@ -15,6 +15,7 @@ final readonly class CreateCard
         return $deck->cards()->create([
             'language' => $data->language,
             'pos' => $data->pos,
+            'category' => $data->category,
             'word' => $data->word,
             'transliteration' => $data->transliteration,
             'definition' => $data->definition,

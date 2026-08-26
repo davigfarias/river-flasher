@@ -14,6 +14,7 @@ final readonly class UpdateCard
         $card->update([
             'language' => $data->language,
             'pos' => $data->pos,
+            'category' => $data->category,
             'word' => $data->word,
             'transliteration' => $data->transliteration,
             'definition' => $data->definition,

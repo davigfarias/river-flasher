@@ -16,6 +16,7 @@ final readonly class CardData
         public ?string $example,
         public ?string $translation,
         public ?string $pos,
+        public ?string $category,
         public bool $isDifficult,
         public ?string $imagePath,
     ) {}

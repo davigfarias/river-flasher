@@ -30,9 +30,11 @@
             </flux:navlist.item>
         </flux:modal.trigger>
 
-        <flux:navlist.item :href="route('decks.from-tag')" wire:navigate icon="tag">
-            Baralho por tema
-        </flux:navlist.item>
+        <flux:modal.trigger name="deck-from-tag-mode">
+            <flux:navlist.item icon="tag" class="cursor-pointer">
+                Baralho por tema
+            </flux:navlist.item>
+        </flux:modal.trigger>
     </flux:navlist>
 
     <div class="mt-auto pt-4 border-t border-outline-variant">

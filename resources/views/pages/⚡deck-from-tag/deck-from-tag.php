@@ -1,6 +1,8 @@
 <?php
 
+use App\Actions\FindCardsByCategory;
 use App\Actions\FindCardsByTag;
+use App\Actions\GetAvailableCategories;
 use App\Actions\GetAvailableTags;
 use App\Actions\Orchestrators\CreateDeckFromTagOrchestrator;
 use App\DTO\DeckData;
@@ -9,11 +11,18 @@ use App\Models\{AccessToken, Card};
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
-use Livewire\Attributes\{Computed, Layout, Title};
+use Livewire\Attributes\{Computed, Layout, Title, Url};
 use Livewire\Component;
 
 new #[Layout('layouts::app')] #[Title('Baralho por tema')] class extends Component
 {
+    /**
+     * Which field cards are grouped by: 'pos' (classe gramatical) or
+     * 'category' (categoria lexical, e.g. "partes do corpo").
+     */
+    #[Url]
+    public string $by = 'pos';
+
     public string $language = 'el';
 
     public string $tag = '';
@@ -23,16 +32,35 @@ new #[Layout('layouts::app')] #[Title('Baralho por tema')] class extends Compone
     /** @var array<int, int> */
     public array $selectedCardIds = [];
 
+    public function mount(): void
+    {
+        if (! in_array($this->by, ['pos', 'category'], true)) {
+            $this->by = 'pos';
+        }
+    }
+
+    public function label(): string
+    {
+        return $this->by === 'category' ? 'categoria' : 'tema';
+    }
+
+    public function labelWithArticle(): string
+    {
+        return $this->by === 'category' ? 'uma categoria' : 'um tema';
+    }
+
     /**
      * @return SupportCollection<int, string>
      */
     #[Computed]
     public function tags(): SupportCollection
     {
-        return app(GetAvailableTags::class)->handle(
-            (int) session('access_token_id'),
-            Language::from($this->language),
-        );
+        $accessTokenId = (int) session('access_token_id');
+        $language = Language::from($this->language);
+
+        return $this->by === 'category'
+            ? app(GetAvailableCategories::class)->handle($accessTokenId, $language)
+            : app(GetAvailableTags::class)->handle($accessTokenId, $language);
     }
 
     /**
@@ -45,11 +73,12 @@ new #[Layout('layouts::app')] #[Title('Baralho por tema')] class extends Compone
             return new Collection;
         }
 
-        return app(FindCardsByTag::class)->handle(
-            (int) session('access_token_id'),
-            Language::from($this->language),
-            $this->tag,
-        );
+        $accessTokenId = (int) session('access_token_id');
+        $language = Language::from($this->language);
+
+        return $this->by === 'category'
+            ? app(FindCardsByCategory::class)->handle($accessTokenId, $language, $this->tag)
+            : app(FindCardsByTag::class)->handle($accessTokenId, $language, $this->tag);
     }
 
     public function updatedLanguage(): void

@@ -2,6 +2,7 @@
 paths:
   - 'app/{Actions/CalculateRecallCounters.php,Models/Card.php,DTO/RecallCounters.php}'
   - 'app/{Actions/StoreCardImage.php,Actions/DeleteCardImage.php,Models/Card.php}'
+  - 'app/{Actions/FindCardsByTag.php,Actions/FindCardsByCategory.php,Actions/GetAvailableTags.php,Actions/GetAvailableCategories.php,Models/Card.php}'
 ---
 
 # App Actions
@@ -14,3 +15,6 @@ There is no spaced-repetition scheduling anymore. Each card just tracks `aced_co
 
 ## LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK must stay local, never the S3/object-storage disk
 `Image::fromUpload()` reads the uploaded file via `$file->getContent()` -> `getRealPath()`. On Livewire's `TemporaryUploadedFile`, `getRealPath()` resolves through `Storage::disk($tempDisk)->path($path)`, which for an S3-driver disk just returns the raw object key (no real filesystem path exists), so `file_get_contents()` fails with "No such file or directory". Livewire's temp-upload disk defaults to `config('filesystems.default')` when `LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK` isn't set — so once `FILESYSTEM_DISK` points at a bucket (prod, via Laravel Cloud Object Storage), image uploads break. Fix/prevention: `LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK` must always be `local`, in every environment, regardless of what the app's default disk is. Only the final, already-processed image (stored explicitly via `StoreCardImage`'s `->store()` call) goes to the default/bucket disk — temp uploads never should.
+
+## Deck-from-tag page is mode-driven by `pos` vs `category`, not two pages
+Cards can be grouped into a deck either by `pos` (classe gramatical: substantivo, verbo…) or `category` (categoria lexical: partes do corpo, objetos de casa…) — both are free-text string(50) columns filled in via a datalist on the card form, no fixed enum. The `pages::deck-from-tag` Livewire page (routes/web.php `decks.from-tag`) is generic: a `#[Url] public string $by = 'pos'` picks which of {GetAvailableTags,GetAvailableCategories} / {FindCardsByTag,FindCardsByCategory} to call — don't fork this into a second page. The "Baralho por tema" entry points (app-nav.blade.php, decks.blade.php) open the shared `x-deck-from-tag-modal` component (registered once in layouts/app.blade.php) which lets the user pick pos vs category before navigating to `route('decks.from-tag', ['by' => ...])`.

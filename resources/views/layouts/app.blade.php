@@ -66,6 +66,7 @@
 
         <flux:toast />
         <livewire:new-deck-modal />
+        <x-deck-from-tag-modal />
 
         @livewireScripts
         @fluxScripts

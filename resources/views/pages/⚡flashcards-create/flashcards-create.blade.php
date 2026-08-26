@@ -53,6 +53,20 @@
                         <option value="Partícula"></option>
                         <option value="Conjunção"></option>
                     </datalist>
+
+                    <flux:input wire:model="form.category" label="Categoria (opcional)" placeholder="ex.: Partes do corpo" list="category-suggestions" />
+                    <datalist id="category-suggestions">
+                        <option value="Partes do corpo"></option>
+                        <option value="Objetos de casa"></option>
+                        <option value="Família"></option>
+                        <option value="Comida e bebida"></option>
+                        <option value="Natureza"></option>
+                        <option value="Animais"></option>
+                        <option value="Roupas"></option>
+                        <option value="Cores"></option>
+                        <option value="Números"></option>
+                        <option value="Tempo e calendário"></option>
+                    </datalist>
                 </div>
 
                 <flux:textarea
