@@ -26,6 +26,7 @@ test('answering "lembrei" persists the new counters and advances the session', f
     Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'remembered')
+        ->call('advance')
         ->assertSet('index', 1);
 
     $card->refresh();
@@ -40,7 +41,8 @@ test('answering "não lembrei" requeues the card within the same session', funct
 
     $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
-        ->call('answer', 'forgot');
+        ->call('answer', 'forgot')
+        ->call('advance');
 
     expect($component->get('cardIds'))->toBe([$card->id, $card->id])
         ->and($component->get('index'))->toBe(1);
@@ -100,6 +102,7 @@ test('restart reloads the queue for the same deck', function () {
     $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'remembered')
+        ->call('advance')
         ->assertSet('index', 1);
 
     $component->call('restart')->assertSet('index', 0);
@@ -114,9 +117,9 @@ test('repeated requeues of a single card do not inflate the completion count', f
 
     $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->assertSet('totalCards', 1)
-        ->call('reveal')->call('answer', 'forgot')
-        ->call('reveal')->call('answer', 'forgot')
-        ->call('reveal')->call('answer', 'remembered');
+        ->call('reveal')->call('answer', 'forgot')->call('advance')
+        ->call('reveal')->call('answer', 'forgot')->call('advance')
+        ->call('reveal')->call('answer', 'remembered')->call('advance');
 
     $component->assertSet('totalCards', 1)
         ->assertSet('completedCount', 1)
@@ -133,10 +136,29 @@ test('progress reflects distinct cards completed, not the growing requeue count'
     Livewire::test('pages::study', ['deck' => $this->deck->uuid])
         ->call('reveal')
         ->call('answer', 'forgot') // requeues -> still 0 of 1 completed
+        ->call('advance')
         ->assertSet('progress', 0)
         ->call('reveal')
         ->call('answer', 'remembered') // completes -> 1 of 1
+        ->call('advance')
         ->assertSet('progress', 100);
+});
+
+test('answer grades the card and flips it back without advancing; advance moves to the next card', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id]);
+    Card::factory()->create(['deck_id' => $this->deck->id]);
+
+    $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->call('reveal')
+        ->assertSet('revealed', true)
+        ->call('answer', 'remembered')
+        ->assertSet('revealed', false)
+        ->assertSet('index', 0)
+        ->assertSet('card.id', $card->id);
+
+    $component->call('advance')->assertSet('index', 1);
+
+    expect($card->fresh()->aced_count)->toBe(1);
 });
 
 test('studying with no deck param pulls cards across all of the token\'s decks, most missed first', function () {

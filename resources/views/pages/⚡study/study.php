@@ -57,6 +57,14 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
         $this->revealed = true;
     }
 
+    /**
+     * Grades the current card and flips it back to its front face, but
+     * deliberately does not advance to the next card yet — that happens in
+     * `advance()`, called client-side once the flip animation finishes. If
+     * both happened together, the DOM diff would swap in the next card's
+     * content while the (still-facing-the-user) back face briefly shows it
+     * before the flip catches up, spoiling the next answer.
+     */
     public function answer(string $result, AnswerCardOrchestrator $orchestrator): void
     {
         $card = $this->card;
@@ -77,8 +85,12 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
             $this->completedCount++;
         }
 
-        $this->index++;
         $this->revealed = false;
+    }
+
+    public function advance(): void
+    {
+        $this->index++;
         unset($this->card);
     }
 

@@ -9,3 +9,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/{Models/AccessToken.php,Http/Middleware/EnsureAccessTokenIsValid.php,Console/Commands/*AccessToken*.php} | .ai/rules/commands.md |
 | app/Livewire/Forms/*.php | .ai/rules/forms.md |
 | app/Providers/AppServiceProvider.php | .ai/rules/providers.md |
+| resources/views/pages/⚡study/*.php | .ai/rules/study.md |

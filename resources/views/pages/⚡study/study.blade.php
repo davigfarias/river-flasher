@@ -4,11 +4,23 @@
 
 <div
     class="flex flex-col min-h-full"
-    x-data
+    x-data="{
+        transitioning: false,
+        submitAnswer(result) {
+            if (this.transitioning) return;
+            this.transitioning = true;
+            $wire.answer(result).then(() => {
+                setTimeout(() => {
+                    $wire.advance().then(() => { this.transitioning = false; });
+                }, 500);
+            });
+        },
+    }"
     x-on:keydown.window="
+        if (transitioning) return;
         if ($event.code === 'Space') { $event.preventDefault(); if (!@js($revealed)) $wire.reveal(); }
         if (@js($revealed) && ['1','2'].includes($event.key)) {
-            $wire.answer({1:'forgot',2:'remembered'}[$event.key]);
+            submitAnswer({1:'forgot',2:'remembered'}[$event.key]);
         }
     "
 >
@@ -20,7 +32,7 @@
 
     <div class="flex-1 flex flex-col items-center justify-center p-4 md:p-6 lg:p-8 relative w-full max-w-[800px] mx-auto">
     @if ($this->card)
-        <div class="w-full max-w-[600px] h-[400px] md:h-[480px] [perspective:1000px] mb-8 cursor-pointer" wire:click="reveal">
+        <div class="w-full max-w-[600px] h-[400px] md:h-[480px] [perspective:1000px] mb-8 cursor-pointer" x-bind:class="{ 'pointer-events-none': transitioning }" wire:click="reveal">
             <div @class(['relative w-full h-full transform-3d transition-transform duration-500 ease-in-out', 'rotate-x-180' => $revealed])>
                 <div class="absolute inset-0 backface-hidden rounded-xl flex flex-col items-center justify-center p-8 border-t-4 border-t-primary-container bg-surface-container-high/80 backdrop-blur-md border border-outline-variant/50 shadow-lg">
                     <div class="absolute top-4 left-4 flex items-center gap-1 px-2 py-1 bg-surface-variant/50 rounded-md border border-outline-variant/30">
@@ -64,17 +76,17 @@
 
         @if (! $revealed)
             <div class="w-full max-w-[600px] flex justify-center">
-                <flux:button wire:click="reveal" variant="primary" icon:trailing="eye" class="w-full md:w-auto px-8 min-h-12 justify-center rounded-full!">
+                <flux:button wire:click="reveal" x-bind:disabled="transitioning" variant="primary" icon:trailing="eye" class="w-full md:w-auto px-8 min-h-12 justify-center rounded-full!">
                     Mostrar resposta
                 </flux:button>
             </div>
         @else
             <div class="w-full max-w-[600px] grid grid-cols-2 gap-3 sm:gap-4">
-                <button type="button" wire:click="answer('forgot')" class="flex-1 px-6 py-4 bg-surface-container border border-error/30 text-error hover:bg-error/10 rounded-xl text-label-md font-semibold active:scale-95 transition-all flex flex-col items-center gap-1 group cursor-pointer">
+                <button type="button" x-on:click="submitAnswer('forgot')" x-bind:disabled="transitioning" class="flex-1 px-6 py-4 bg-surface-container border border-error/30 text-error hover:bg-error/10 rounded-xl text-label-md font-semibold active:scale-95 transition-all flex flex-col items-center gap-1 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     <flux:icon.x-mark class="size-7 group-hover:-translate-y-1 transition-transform" />
                     Não lembrei
                 </button>
-                <button type="button" wire:click="answer('remembered')" class="flex-1 px-6 py-4 bg-primary-container/20 border border-primary-container/50 text-primary hover:bg-primary-container/30 rounded-xl text-label-md font-semibold active:scale-95 transition-all flex flex-col items-center gap-1 group cursor-pointer">
+                <button type="button" x-on:click="submitAnswer('remembered')" x-bind:disabled="transitioning" class="flex-1 px-6 py-4 bg-primary-container/20 border border-primary-container/50 text-primary hover:bg-primary-container/30 rounded-xl text-label-md font-semibold active:scale-95 transition-all flex flex-col items-center gap-1 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     <flux:icon.check class="size-7 group-hover:-translate-y-1 transition-transform" />
                     Lembrei
                 </button>
