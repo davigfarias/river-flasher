@@ -17,8 +17,12 @@
 
         <form wire:submit="addToDeck" class="bg-surface-container-high rounded-xl border border-outline-variant p-6 shadow-sm flex flex-col gap-8">
             <flux:select wire:model.live="form.deck" label="Baralho de destino">
-                @foreach ($this->decks as $value => $label)
-                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+                @foreach ($this->deckGroups as $group)
+                    <flux:select.group :label="$group['label']">
+                        @foreach ($group['decks'] as $value => $label)
+                            <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+                        @endforeach
+                    </flux:select.group>
                 @endforeach
             </flux:select>
 

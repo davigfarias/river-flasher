@@ -70,6 +70,23 @@ test('deck options are limited to the current token', function () {
         ->and($component->get('decks'))->toHaveKey($this->deck->uuid);
 });
 
+test('the deck select groups decks by language, keeping same-named decks apart', function () {
+    $greekDeck = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Lição 3']);
+    Card::factory()->create(['deck_id' => $greekDeck->id, 'language' => Language::Greek]);
+
+    $hebrewDeck = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Lição 3']);
+    Card::factory()->create(['deck_id' => $hebrewDeck->id, 'language' => Language::Hebrew]);
+
+    $newDeck = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Lição 3']);
+
+    $groups = Livewire::test('pages::flashcards-create')->get('deckGroups')->keyBy('label');
+
+    expect($groups['Grego']['decks']->keys()->all())->toBe([$greekDeck->uuid])
+        ->and($groups['Hebraico']['decks']->keys()->all())->toBe([$hebrewDeck->uuid])
+        ->and($groups['Em criação (sem idioma ainda)']['decks']->keys()->all())->toContain($newDeck->uuid)
+        ->and($groups['Em criação (sem idioma ainda)']['decks']->keys()->all())->toContain($this->deck->uuid);
+});
+
 test('a deck uuid belonging to another token is rejected on submit', function () {
     $otherToken = AccessToken::factory()->create();
     $otherDeck = Deck::factory()->create(['access_token_id' => $otherToken->id]);
