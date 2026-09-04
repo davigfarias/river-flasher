@@ -184,6 +184,68 @@ test('a decks query param builds a custom session combining just those decks', f
         ->assertSee('2 baralhos selecionados');
 });
 
+test('goBack undoes a "lembrei" answer, restores counters, and re-shows the card revealed', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id, 'aced_count' => 1, 'missed_count' => 0]);
+
+    $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->call('reveal')
+        ->call('answer', 'remembered')
+        ->call('advance')
+        ->assertSet('completedCount', 1)
+        ->assertSet('index', 1);
+
+    $component->call('goBack')
+        ->assertSet('index', 0)
+        ->assertSet('revealed', true)
+        ->assertSet('completedCount', 0)
+        ->assertSet('card.id', $card->id);
+
+    $card->refresh();
+
+    expect($card->aced_count)->toBe(1)
+        ->and($card->missed_count)->toBe(0)
+        ->and(Review::where('card_id', $card->id)->exists())->toBeFalse();
+});
+
+test('goBack undoes a "não lembrei" answer and removes the requeued duplicate', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id]);
+
+    $component = Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->call('reveal')
+        ->call('answer', 'forgot')
+        ->call('advance');
+
+    expect($component->get('cardIds'))->toBe([$card->id, $card->id]);
+
+    $component->call('goBack')
+        ->assertSet('index', 0)
+        ->assertSet('revealed', true);
+
+    expect($component->get('cardIds'))->toBe([$card->id])
+        ->and($card->fresh()->missed_count)->toBe(0)
+        ->and(Review::where('card_id', $card->id)->exists())->toBeFalse();
+});
+
+test('goBack does nothing when there is no history yet', function () {
+    Card::factory()->create(['deck_id' => $this->deck->id]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->assertSet('canGoBack', false)
+        ->call('goBack')
+        ->assertSet('index', 0)
+        ->assertSet('revealed', false);
+});
+
+test('the back arrow is disabled until an answer has been given', function () {
+    Card::factory()->create(['deck_id' => $this->deck->id]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->assertSet('canGoBack', false)
+        ->call('reveal')
+        ->call('answer', 'remembered')
+        ->assertSet('canGoBack', true);
+});
+
 test('a foreign or bogus uuid in the decks query param is dropped rather than 404ing the session', function () {
     $otherToken = AccessToken::factory()->create();
     $foreignDeck = Deck::factory()->create(['access_token_id' => $otherToken->id]);

@@ -22,9 +22,18 @@
         if (@js($revealed) && ['1','2'].includes($event.key)) {
             submitAnswer({1:'forgot',2:'remembered'}[$event.key]);
         }
+        if ($event.key === 'Backspace' && @js($this->canGoBack)) { $event.preventDefault(); $wire.goBack(); }
     "
 >
     <div class="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-6 py-3 bg-surface/90 backdrop-blur-md border-b border-outline-variant/50">
+        <flux:button
+            wire:click="goBack"
+            x-bind:disabled="transitioning || !@js($this->canGoBack)"
+            variant="ghost"
+            size="sm"
+            icon="arrow-uturn-left"
+            title="Corrigir resposta anterior"
+        />
         <span class="text-label-sm text-on-surface-variant whitespace-nowrap truncate">{{ $deckName }}</span>
         <flux:progress :value="$this->progress" class="flex-1" />
         <span class="text-label-sm font-bold text-primary shrink-0">{{ $this->progress }}%</span>
