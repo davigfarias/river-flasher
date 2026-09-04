@@ -33,7 +33,17 @@
                 </flux:modal.trigger>
             </div>
         @else
-            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <flux:checkbox.group wire:model.live="selectedDeckIds">
+                @if (count($selectedDeckIds) >= 2)
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-label-sm text-on-surface-variant">{{ count($selectedDeckIds) }} baralhos selecionados</span>
+                        <flux:button :href="route('study', ['decks' => implode(',', $selectedDeckIds)])" wire:navigate variant="primary" icon="play" size="sm">
+                            Estudar selecionados
+                        </flux:button>
+                    </div>
+                @endif
+
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($this->decks as $deck)
                     <div class="relative" wire:key="deck-{{ $deck['uuid'] }}">
                         <a
@@ -66,6 +76,7 @@
                         </a>
 
                         <div class="absolute top-4 right-4 z-10 flex items-center gap-2">
+                            <flux:checkbox value="{{ $deck['uuid'] }}" title="Selecionar para sessão personalizada" />
                             @if ($deck['language'])
                                 <flux:badge size="sm" :color="$deck['language']->badgeColor()">{{ $deck['language']->label() }}</flux:badge>
                             @endif
@@ -80,7 +91,8 @@
                         </div>
                     </div>
                 @endforeach
-            </section>
+                </section>
+            </flux:checkbox.group>
         @endif
     </div>
 </div>

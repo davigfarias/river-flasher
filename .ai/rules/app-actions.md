@@ -4,6 +4,7 @@ paths:
   - 'app/{Actions/StoreCardImage.php,Actions/DeleteCardImage.php,Models/Card.php}'
   - 'app/{Actions/FindCardsByTag.php,Actions/FindCardsByCategory.php,Actions/GetAvailableTags.php,Actions/GetAvailableCategories.php,Models/Card.php}'
   - 'app/{Actions/InsertCardsBulk.php,Actions/ParseCsvCards.php}'
+  - 'app/{Actions/FindCardsToStudy.php,Actions/Orchestrators/StartStudySessionOrchestrator.php}'
 ---
 
 # App Actions
@@ -24,3 +25,8 @@ Cards can be grouped into a deck either by `pos` (classe gramatical: substantivo
 InsertCardsBulk uses Card::query()->insert() (bulk), not ->create() — no model events, no auto timestamps, so created_at/updated_at are stamped manually. New-card defaults are set explicitly: image_path null, is_active true, aced_count/missed_count 0, last_reviewed_at null.
 
 ParseCsvCards's `language` CSV column is optional. Effective import language resolves in this order (decided with the user, not the original plan.md draft): 1) the destination deck's existing language via GetDeckLanguage if it already has cards, 2) the CSV's own detected language if uniform, 3) a language the user picks explicitly in the decks-import-csv page UI (only shown when neither of the above resolves it). A CSV whose language column has mixed values is rejected outright (languagesMixed), never silently picks one.
+
+## Study sessions take a deck-id array, not a single nullable Deck
+FindCardsToStudy's second param is `array $deckIds = []` (empty = every deck the token owns) and StartStudySessionOrchestrator's is `Collection<int, Deck> $decks` — this replaced the old `?Deck $deck` signature so one code path covers "study everything" (empty), "study one deck" (1 item, existing links), and "study a custom multi-deck selection" (2+ items, new). deckName: empty → "Todos os baralhos", 1 → that deck's name, 2+ → "N baralhos selecionados".
+
+The custom-selection entry point is `resources/views/pages/⚡decks/decks.blade.php`'s per-deck checkboxes (`flux:checkbox.group`, public `$selectedDeckIds`) — "Estudar selecionados" only shows at 2+ selections (1 would just duplicate clicking the deck card) and links to `route('study', ['decks' => implode(',', $selectedDeckIds)])`. See `.ai/rules/study.md` for how the study page itself reads that `decks` query param.

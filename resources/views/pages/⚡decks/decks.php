@@ -13,6 +13,19 @@ new #[Layout('layouts::app')] #[Title('Baralhos')] class extends Component
 
     public bool $showHebrew = true;
 
+    /** @var array<int, string> */
+    public array $selectedDeckIds = [];
+
+    public function updatedShowGreek(): void
+    {
+        $this->selectedDeckIds = [];
+    }
+
+    public function updatedShowHebrew(): void
+    {
+        $this->selectedDeckIds = [];
+    }
+
     /**
      * @return Collection<int, array{name: string, uuid: string, meta: string, language: ?Language, urgent: bool, dim: bool, cardsCount: int, lastReviewedAt: ?CarbonImmutable}>
      */

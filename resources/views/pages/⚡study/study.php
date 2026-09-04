@@ -3,6 +3,7 @@
 use App\Actions\Orchestrators\{AnswerCardOrchestrator, StartStudySessionOrchestrator};
 use App\Enums\ReviewResult;
 use App\Models\{Card, Deck};
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\{Computed, Layout, Locked, Title};
 use Livewire\Component;
 
@@ -10,8 +11,15 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
 {
     public string $deckName = '';
 
+    /**
+     * The deck uuids this session was built from — empty means "every
+     * deck". Kept so `restart()` can rebuild the exact same session
+     * instead of falling back to "study everything".
+     *
+     * @var array<int, string>
+     */
     #[Locked]
-    public ?string $deckUuid = null;
+    public array $deckUuids = [];
 
     /** @var array<int, int> */
     #[Locked]
@@ -33,7 +41,13 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
 
     public function mount(StartStudySessionOrchestrator $orchestrator, ?string $deck = null): void
     {
-        $this->startSession($orchestrator, $deck);
+        $deckUuids = match (true) {
+            $deck !== null => [$deck],
+            request()->filled('decks') => array_values(array_filter(explode(',', (string) request()->query('decks')))),
+            default => [],
+        };
+
+        $this->startSession($orchestrator, $deckUuids);
     }
 
     #[Computed]
@@ -96,21 +110,31 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
 
     public function restart(StartStudySessionOrchestrator $orchestrator): void
     {
-        $this->startSession($orchestrator, $this->deckUuid);
+        $this->startSession($orchestrator, $this->deckUuids);
     }
 
-    private function startSession(StartStudySessionOrchestrator $orchestrator, ?string $deckUuid): void
+    /**
+     * @param  array<int, string>  $deckUuids
+     */
+    private function startSession(StartStudySessionOrchestrator $orchestrator, array $deckUuids): void
     {
-        $deck = $deckUuid !== null
-            ? Deck::where('uuid', $deckUuid)
-                ->where('access_token_id', session('access_token_id'))
-                ->firstOrFail()
-            : null;
+        $accessTokenId = (int) session('access_token_id');
 
-        $session = $orchestrator
-            ->handle((int) session('access_token_id'), $deck);
+        // A single deck keeps the strict firstOrFail() 404 guard that
+        // existing links (deck cards, "estudar este baralho") rely on. A
+        // multi-deck custom session just drops any uuid that doesn't
+        // resolve, rather than 404ing the whole session over one bad id.
+        $decks = match (count($deckUuids)) {
+            0 => new Collection,
+            1 => new Collection([
+                Deck::where('uuid', $deckUuids[0])->where('access_token_id', $accessTokenId)->firstOrFail(),
+            ]),
+            default => Deck::whereIn('uuid', $deckUuids)->where('access_token_id', $accessTokenId)->get(),
+        };
 
-        $this->deckUuid = $deckUuid;
+        $session = $orchestrator->handle($accessTokenId, $decks);
+
+        $this->deckUuids = $deckUuids;
         $this->deckName = $session->deckName;
         $this->cardIds = $session->cardIds;
         $this->totalCards = count($session->cardIds);

@@ -170,3 +170,27 @@ test('studying with no deck param pulls cards across all of the token\'s decks, 
         ->assertSet('cardIds', [$cardA->id, $cardB->id])
         ->assertSet('deckName', 'Todos os baralhos');
 });
+
+test('a decks query param builds a custom session combining just those decks', function () {
+    $otherDeck = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    $excludedDeck = Deck::factory()->create(['access_token_id' => $this->token->id]);
+
+    Card::factory()->create(['deck_id' => $this->deck->id, 'word' => 'included-one']);
+    Card::factory()->create(['deck_id' => $otherDeck->id, 'word' => 'included-two']);
+    Card::factory()->create(['deck_id' => $excludedDeck->id, 'word' => 'excluded-three']);
+
+    $this->get('/study?decks='.$this->deck->uuid.','.$otherDeck->uuid)
+        ->assertOk()
+        ->assertSee('2 baralhos selecionados');
+});
+
+test('a foreign or bogus uuid in the decks query param is dropped rather than 404ing the session', function () {
+    $otherToken = AccessToken::factory()->create();
+    $foreignDeck = Deck::factory()->create(['access_token_id' => $otherToken->id]);
+
+    Card::factory()->create(['deck_id' => $this->deck->id]);
+
+    $this->get('/study?decks='.$this->deck->uuid.','.$foreignDeck->uuid.',not-a-real-uuid')
+        ->assertOk()
+        ->assertSee($this->deck->name);
+});

@@ -105,3 +105,36 @@ test('a deck with no cards yet is never hidden by the language toggles', functio
         ->set('showHebrew', false)
         ->assertSee('Fresh Deck');
 });
+
+test('the custom study button stays hidden until at least two decks are selected', function () {
+    $deckA = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    $deckB = Deck::factory()->create(['access_token_id' => $this->token->id]);
+
+    $component = Livewire::test('pages::decks')
+        ->assertDontSee('Estudar selecionados')
+        ->set('selectedDeckIds', [$deckA->uuid])
+        ->assertDontSee('Estudar selecionados')
+        ->set('selectedDeckIds', [$deckA->uuid, $deckB->uuid])
+        ->assertSee('Estudar selecionados');
+
+    expect($component->get('selectedDeckIds'))->toHaveCount(2);
+});
+
+test('the custom study button links to a study session scoped to just the selected decks', function () {
+    $deckA = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    $deckB = Deck::factory()->create(['access_token_id' => $this->token->id]);
+
+    Livewire::test('pages::decks')
+        ->set('selectedDeckIds', [$deckA->uuid, $deckB->uuid])
+        ->assertSeeHtml('decks='.$deckA->uuid.'%2C'.$deckB->uuid);
+});
+
+test('toggling a language filter clears the deck selection', function () {
+    $deckA = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    $deckB = Deck::factory()->create(['access_token_id' => $this->token->id]);
+
+    Livewire::test('pages::decks')
+        ->set('selectedDeckIds', [$deckA->uuid, $deckB->uuid])
+        ->set('showGreek', false)
+        ->assertSet('selectedDeckIds', []);
+});
