@@ -65,6 +65,7 @@
         </div>
 
         <flux:toast />
+        <x-create-deck-menu-modal />
         <livewire:new-deck-modal />
         <x-deck-from-tag-modal />
 

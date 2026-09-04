@@ -3,6 +3,7 @@ paths:
   - 'app/{Actions/CalculateRecallCounters.php,Models/Card.php,DTO/RecallCounters.php}'
   - 'app/{Actions/StoreCardImage.php,Actions/DeleteCardImage.php,Models/Card.php}'
   - 'app/{Actions/FindCardsByTag.php,Actions/FindCardsByCategory.php,Actions/GetAvailableTags.php,Actions/GetAvailableCategories.php,Models/Card.php}'
+  - 'app/{Actions/InsertCardsBulk.php,Actions/ParseCsvCards.php}'
 ---
 
 # App Actions
@@ -18,3 +19,8 @@ There is no spaced-repetition scheduling anymore. Each card just tracks `aced_co
 
 ## Deck-from-tag page is mode-driven by `pos` vs `category`, not two pages
 Cards can be grouped into a deck either by `pos` (classe gramatical: substantivo, verbo…) or `category` (categoria lexical: partes do corpo, objetos de casa…) — both are free-text string(50) columns filled in via a datalist on the card form, no fixed enum. The `pages::deck-from-tag` Livewire page (routes/web.php `decks.from-tag`) is generic: a `#[Url] public string $by = 'pos'` picks which of {GetAvailableTags,GetAvailableCategories} / {FindCardsByTag,FindCardsByCategory} to call — don't fork this into a second page. The "Baralho por tema" entry points (app-nav.blade.php, decks.blade.php) open the shared `x-deck-from-tag-modal` component (registered once in layouts/app.blade.php) which lets the user pick pos vs category before navigating to `route('decks.from-tag', ['by' => ...])`.
+
+## CSV import: bulk insert bypasses Eloquent, language falls back deck → CSV → user
+InsertCardsBulk uses Card::query()->insert() (bulk), not ->create() — no model events, no auto timestamps, so created_at/updated_at are stamped manually. New-card defaults are set explicitly: image_path null, is_active true, aced_count/missed_count 0, last_reviewed_at null.
+
+ParseCsvCards's `language` CSV column is optional. Effective import language resolves in this order (decided with the user, not the original plan.md draft): 1) the destination deck's existing language via GetDeckLanguage if it already has cards, 2) the CSV's own detected language if uniform, 3) a language the user picks explicitly in the decks-import-csv page UI (only shown when neither of the above resolves it). A CSV whose language column has mixed values is rejected outright (languagesMixed), never silently picks one.

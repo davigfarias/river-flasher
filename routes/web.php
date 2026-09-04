@@ -9,6 +9,7 @@ Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
     Route::livewire('/dashboard', 'pages::dashboard')->name('dashboard');
     Route::livewire('/decks', 'pages::decks')->name('decks');
     Route::livewire('/decks/by-tag', 'pages::deck-from-tag')->name('decks.from-tag');
+    Route::livewire('/decks/import-csv', 'pages::decks-import-csv')->name('decks.import-csv');
     Route::livewire('/decks/{deck}', 'pages::deck-show')->name('decks.show');
     Route::livewire('/study/{deck?}', 'pages::study')->name('study');
     Route::livewire('/flashcards/create', 'pages::flashcards-create')->name('flashcards.create');

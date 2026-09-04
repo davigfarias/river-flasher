@@ -35,25 +35,35 @@
         <div class="w-full max-w-[600px] h-[400px] md:h-[480px] [perspective:1000px] mb-8 cursor-pointer" x-bind:class="{ 'pointer-events-none': transitioning }" wire:click="reveal">
             <div @class(['relative w-full h-full transform-3d transition-transform duration-500 ease-in-out', 'rotate-x-180' => $revealed])>
                 <div class="absolute inset-0 backface-hidden rounded-xl flex flex-col items-center justify-center p-8 border-t-4 border-t-primary-container bg-surface-container-high/80 backdrop-blur-md border border-outline-variant/50 shadow-lg">
-                    <div class="absolute top-4 left-4 flex items-center gap-1 px-2 py-1 bg-surface-variant/50 rounded-md border border-outline-variant/30">
-                        <flux:icon.tag class="size-3.5 text-tertiary" />
-                        <span class="text-label-sm text-tertiary">{{ $this->card->pos }}</span>
-                    </div>
                     @if ($this->card->imageUrl())
-                        <img src="{{ $this->card->imageUrl() }}" alt="" class="max-h-40 md:max-h-48 rounded-lg object-contain mb-4">
+                        <img src="{{ $this->card->imageUrl() }}" alt="" class="max-h-60 md:max-h-72 rounded-lg object-contain">
+                    @else
+                        <div class="absolute top-4 left-4 flex items-center gap-1 px-2 py-1 bg-surface-variant/50 rounded-md border border-outline-variant/30">
+                            <flux:icon.tag class="size-3.5 text-tertiary" />
+                            <span class="text-label-sm text-tertiary">{{ $this->card->pos }}</span>
+                        </div>
+                        <h2
+                            @class(['text-display-lg text-on-surface text-center', 'font-hebrew' => $this->card->language->isRtl()])
+                            dir="{{ $this->card->language->isRtl() ? 'rtl' : 'ltr' }}"
+                            lang="{{ $this->card->language->value }}"
+                        >
+                            {{ $this->card->word }}
+                        </h2>
+                        <p class="text-label-md text-on-surface-variant mt-6 opacity-60">Toque para virar</p>
                     @endif
-                    <h2
-                        @class(['text-display-lg text-on-surface text-center', 'font-hebrew' => $this->card->language->isRtl()])
-                        dir="{{ $this->card->language->isRtl() ? 'rtl' : 'ltr' }}"
-                        lang="{{ $this->card->language->value }}"
-                    >
-                        {{ $this->card->word }}
-                    </h2>
-                    <p class="text-label-md text-on-surface-variant mt-6 opacity-60">Toque para virar</p>
                 </div>
 
                 <div class="absolute inset-0 backface-hidden rotate-x-180 rounded-xl flex flex-col items-center justify-center p-8 border-t-4 border-t-secondary bg-surface-container-high/80 backdrop-blur-md border border-outline-variant/50 shadow-lg">
                     <div class="w-full text-center space-y-4">
+                        @if ($this->card->imageUrl())
+                            <h2
+                                @class(['text-display-lg text-on-surface mb-4', 'font-hebrew' => $this->card->language->isRtl()])
+                                dir="{{ $this->card->language->isRtl() ? 'rtl' : 'ltr' }}"
+                                lang="{{ $this->card->language->value }}"
+                            >
+                                {{ $this->card->word }}
+                            </h2>
+                        @endif
                         <p class="text-headline-lg text-primary mb-2 max-w-md mx-auto leading-snug">{{ $this->card->definition }}</p>
                         @if ($this->card->transliteration)
                             <h3 class="text-body-lg text-on-surface-variant">/{{ $this->card->transliteration }}/</h3>

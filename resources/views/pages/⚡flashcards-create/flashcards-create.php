@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\{CreateCard, GetDeckLanguage, GetRecentCards, StoreCardImage};
+use App\Actions\{CreateCard, GetDeckGroupsByLanguage, GetDeckLanguage, GetRecentCards, StoreCardImage};
 use App\Enums\Language;
 use App\Livewire\Forms\CardForm;
 use App\Models\{Card, Deck};
@@ -45,23 +45,7 @@ new #[Layout('layouts::app')] #[Title('Criar cartão')] class extends Component
     #[Computed]
     public function deckGroups(): SupportCollection
     {
-        $decks = Deck::query()
-            ->where('access_token_id', session('access_token_id'))
-            ->addSelect(['language' => Card::query()
-                ->select('language')
-                ->whereColumn('deck_id', 'decks.id')
-                ->orderBy('id')
-                ->limit(1),
-            ])
-            ->orderBy('name')
-            ->get()
-            ->groupBy(fn (Deck $deck) => $deck->getAttribute('language') ?? 'none');
-
-        return collect([
-            ['label' => Language::Greek->label(), 'decks' => $decks->get(Language::Greek->value, collect())->pluck('name', 'uuid')],
-            ['label' => Language::Hebrew->label(), 'decks' => $decks->get(Language::Hebrew->value, collect())->pluck('name', 'uuid')],
-            ['label' => 'Em criação (sem idioma ainda)', 'decks' => $decks->get('none', collect())->pluck('name', 'uuid')],
-        ])->filter(fn (array $group) => $group['decks']->isNotEmpty())->values();
+        return app(GetDeckGroupsByLanguage::class)->handle((int) session('access_token_id'));
     }
 
     /**

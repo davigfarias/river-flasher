@@ -58,7 +58,13 @@
                         <option value="Conjunção"></option>
                     </datalist>
 
-                    <flux:input wire:model="form.category" label="Categoria (opcional)" placeholder="ex.: Partes do corpo" list="category-suggestions" />
+                    <div>
+                        <div class="mb-2">
+                            <flux:label >Categoria</flux:label>
+                            <flux:badge size="sm" color="blue">Opcional</flux:badge>
+                        </div>
+                        <flux:input wire:model="form.category" placeholder="ex.: Partes do corpo" list="category-suggestions" />
+                    </div>
                     <datalist id="category-suggestions">
                         <option value="Partes do corpo"></option>
                         <option value="Objetos de casa"></option>
@@ -93,7 +99,13 @@
                 <flux:input wire:model="form.translation" label="Tradução" placeholder="Digite a tradução do exemplo…" />
 
                 <div class="space-y-2">
-                    <flux:input wire:model="form.image" type="file" accept="image/*" label="Imagem (opcional)" />
+                     <div>
+                        <div class="mb-2">
+                            <flux:label>Imagem</flux:label>
+                            <flux:badge size="sm" color="blue">Opcional</flux:badge>
+                        </div>
+                        <flux:input wire:model="form.image" type="file" accept="image/*"/>
+                    </div>
 
                     @if ($form->image)
                         <img src="{{ $form->image->temporaryUrl() }}" alt="Pré-visualização" class="h-24 rounded-lg border border-outline-variant object-cover">

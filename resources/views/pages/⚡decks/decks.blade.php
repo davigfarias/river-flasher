@@ -12,14 +12,9 @@
                     <flux:toggle wire:model.live="showGreek" icon="language" color="red" label="Grego" tooltip="Mostrar baralhos em grego" />
                     <flux:toggle wire:model.live="showHebrew" icon="language" color="red" label="Hebraico" tooltip="Mostrar baralhos em hebraico" />
                 </div>
-                <flux:modal.trigger name="deck-from-tag-mode">
-                    <flux:button variant="ghost" icon="tag" class="w-full sm:w-auto justify-center">
-                        Baralho por tema
-                    </flux:button>
-                </flux:modal.trigger>
-                <flux:modal.trigger name="new-deck">
+                <flux:modal.trigger name="create-deck-menu">
                     <flux:button variant="primary" icon="plus" class="w-full sm:w-auto justify-center">
-                        Novo baralho
+                        Criar baralho
                     </flux:button>
                 </flux:modal.trigger>
             </div>
@@ -31,7 +26,7 @@
                     <flux:icon.rectangle-stack class="size-8" />
                 </div>
                 <p class="text-body-md text-on-surface-variant">Você ainda não tem nenhum baralho.</p>
-                <flux:modal.trigger name="new-deck">
+                <flux:modal.trigger name="create-deck-menu">
                     <flux:button variant="primary" icon="plus">
                         Criar primeiro baralho
                     </flux:button>

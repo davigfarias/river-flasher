@@ -3,7 +3,7 @@
         ['label' => 'Painel', 'icon' => 'squares-2x2', 'route' => 'dashboard'],
         ['label' => 'Estudar', 'icon' => 'academic-cap', 'route' => 'study'],
         ['label' => 'Baralhos', 'icon' => 'rectangle-stack', 'route' => 'decks'],
-        ['label' => 'Criar', 'icon' => 'plus-circle', 'route' => 'flashcards.create'],
+        ['label' => 'Adicionar Cartões', 'icon' => 'plus-circle', 'route' => 'flashcards.create'],
     ];
 @endphp
 
@@ -24,15 +24,9 @@
             </flux:navlist.item>
         @endforeach
 
-        <flux:modal.trigger name="new-deck">
+        <flux:modal.trigger name="create-deck-menu">
             <flux:navlist.item icon="plus" class="cursor-pointer">
-                Novo baralho
-            </flux:navlist.item>
-        </flux:modal.trigger>
-
-        <flux:modal.trigger name="deck-from-tag-mode">
-            <flux:navlist.item icon="tag" class="cursor-pointer">
-                Baralho por tema
+                Criar baralho
             </flux:navlist.item>
         </flux:modal.trigger>
     </flux:navlist>
