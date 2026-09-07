@@ -60,4 +60,12 @@ class Deck extends Model
     {
         return $this->hasMany(Card::class);
     }
+
+    /**
+     * @return HasMany<Sentence, $this>
+     */
+    public function sentences(): HasMany
+    {
+        return $this->hasMany(Sentence::class);
+    }
 }
