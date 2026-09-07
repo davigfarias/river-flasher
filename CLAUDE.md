@@ -166,3 +166,27 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+# NEVER destroy the local development database (`database/database.sqlite`)
+
+`database/database.sqlite` is the developer's local data. It holds the login access token and
+the decks/cards they use to test the app by hand. There is no backup — it is gitignored
+(`database/.gitignore` = `*.sqlite*`) and never committed. If you wipe it, the developer is
+locked out of the app and loses hours re-seeding.
+
+**Absolutely forbidden against the default connection / the local sqlite file:**
+`php artisan migrate:fresh`, `migrate:rollback`, `migrate:reset`, `migrate:refresh`,
+`db:wipe`, `schema:dump --prune`, `Model::truncate()`/mass `delete()` in tinker, or any
+`DB_DATABASE=…` override that points at `database/database.sqlite`.
+
+- `php artisan migrate` (forward only) is fine — it just applies new migrations.
+- The test suite is already isolated: `phpunit.xml` sets `DB_DATABASE=:memory:`, so
+  `php artisan test` / `./vendor/bin/pest` never touch the dev DB. Run tests freely.
+- To verify a migration's `down()` or a `fresh` build, use a THROWAWAY database, e.g.
+  `php artisan migrate:fresh --database=sqlite --env=… ` pointed at a temp file under the
+  scratchpad, or a `:memory:` run inside a test — never the real file.
+- If the dev DB somehow gets wiped: recreate the access token immediately
+  (`AccessToken::updateOrCreate(['token' => hash('sha256', '<code>')], ['name' => 'Dave'])`)
+  and tell the developer, then offer `php artisan db:seed --class=DemoSeeder` for demo data.
+
+If a task seems to require rebuilding the schema, STOP and ask the developer first.
