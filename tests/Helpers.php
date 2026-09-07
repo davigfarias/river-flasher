@@ -14,3 +14,42 @@ function loginWithCode($page, string $code)
 
     return $page;
 }
+
+/**
+ * A well-formed GreekSentenceWriter response: a 3-word dative sentence
+ * whose noun (ἄνθρωπος, stem ανθρωπ, 2nd-decl masc) is correctly inflected.
+ * Used to fake the agent in the sentence-generation tests.
+ *
+ * @return array<string, mixed>
+ */
+function validDativeSentence(): array
+{
+    return [
+        'text' => 'βλεπω τῳ ανθρωπῳ',
+        'translation_pt' => 'vejo o homem',
+        'tokens' => [
+            ['surface' => 'βλεπω', 'lemma' => 'βλεπω', 'case' => null, 'number' => null],
+            ['surface' => 'τῳ', 'lemma' => 'ὁ', 'case' => 'dat', 'number' => 'sg'],
+            ['surface' => 'ανθρωπῳ', 'lemma' => 'ἄνθρωπος', 'case' => 'dat', 'number' => 'sg'],
+        ],
+    ];
+}
+
+/**
+ * Same shape, but the noun is tagged dative while carrying the accusative
+ * form — the deterministic validator must reject it.
+ *
+ * @return array<string, mixed>
+ */
+function morphologicallyWrongSentence(): array
+{
+    return [
+        'text' => 'βλεπω τον ανθρωπον',
+        'translation_pt' => 'vejo o homem',
+        'tokens' => [
+            ['surface' => 'βλεπω', 'lemma' => 'βλεπω', 'case' => null, 'number' => null],
+            ['surface' => 'τον', 'lemma' => 'ὁ', 'case' => 'acc', 'number' => 'sg'],
+            ['surface' => 'ανθρωπον', 'lemma' => 'ἄνθρωπος', 'case' => 'dat', 'number' => 'sg'],
+        ],
+    ];
+}

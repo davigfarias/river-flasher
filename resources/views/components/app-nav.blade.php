@@ -24,6 +24,15 @@
             </flux:navlist.item>
         @endforeach
 
+        <flux:navlist.item
+            icon="chat-bubble-left-right"
+            :href="route('sentences.review')"
+            wire:navigate
+            class="data-current:bg-secondary-container! data-current:text-on-secondary-container! hover:data-current:text-on-secondary-container!"
+        >
+            Revisar frases
+        </flux:navlist.item>
+
         <flux:modal.trigger name="create-deck-menu">
             <flux:navlist.item icon="plus" class="cursor-pointer">
                 Criar baralho
