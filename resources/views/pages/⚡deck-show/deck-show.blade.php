@@ -29,6 +29,11 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                @if ($this->hasApprovedSentences)
+                    <flux:button :href="route('drills.show', $this->deck)" wire:navigate variant="ghost" icon="sparkles" class="justify-center">
+                        Praticar
+                    </flux:button>
+                @endif
                 <flux:button :href="route('decks.morphology', $this->deck)" wire:navigate variant="ghost" icon="language" class="justify-center">
                     Anotar morfologia
                 </flux:button>

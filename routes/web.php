@@ -14,5 +14,6 @@ Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
     Route::livewire('/decks/{deck}/morphology', 'pages::deck-morphology')->name('decks.morphology');
     Route::livewire('/study/{deck?}', 'pages::study')->name('study');
     Route::livewire('/sentences/review', 'pages::sentences-review')->name('sentences.review');
+    Route::livewire('/drills/{deck}', 'pages::drill')->name('drills.show');
     Route::livewire('/flashcards/create', 'pages::flashcards-create')->name('flashcards.create');
 });

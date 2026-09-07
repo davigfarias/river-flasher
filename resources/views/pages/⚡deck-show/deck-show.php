@@ -4,7 +4,7 @@ use App\Actions\SetCardsActiveState;
 use App\Actions\ToggleCardActive;
 use App\Actions\UpdateDeck;
 use App\Livewire\Forms\DeckForm;
-use App\Models\{Card, Deck};
+use App\Models\{Card, Deck, Sentence};
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\{Computed, Layout, Locked, On, Title};
@@ -58,6 +58,12 @@ new #[Layout('layouts::app')] #[Title('Baralho')] class extends Component
     public function inactiveCount(): int
     {
         return $this->deck->cards()->where('is_active', false)->count();
+    }
+
+    #[Computed]
+    public function hasApprovedSentences(): bool
+    {
+        return Sentence::query()->where('deck_id', $this->deckId)->approved()->exists();
     }
 
     public function updatedShowInactive(): void

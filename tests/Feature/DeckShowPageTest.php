@@ -4,6 +4,7 @@ use App\Enums\Language;
 use App\Models\AccessToken;
 use App\Models\Card;
 use App\Models\Deck;
+use App\Models\Sentence;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Livewire;
 
@@ -165,6 +166,19 @@ test('activating a selection of cards in one go reveals all of them', function (
         ->assertSet('selectedCardIds', []);
 
     expect($selected->fresh()->pluck('is_active')->all())->toBe([true, true, true]);
+});
+
+test('the "Praticar" button appears only once the deck has an approved sentence', function () {
+    Livewire::test('pages::deck-show', ['deck' => $this->deck->uuid])
+        ->assertDontSee('Praticar');
+
+    Sentence::factory()->approved()->create([
+        'access_token_id' => $this->token->id,
+        'deck_id' => $this->deck->id,
+    ]);
+
+    Livewire::test('pages::deck-show', ['deck' => $this->deck->uuid])
+        ->assertSee('Praticar');
 });
 
 test('bulk actions ignore card ids that do not belong to the token', function () {
