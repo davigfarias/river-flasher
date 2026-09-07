@@ -1,308 +1,296 @@
-# Plano: Importação de Flashcards via CSV
+# Plano: Drills morfológicos estilo Duolingo (River Flasher)
 
-## Contexto
-
-Atualmente, a criação de flashcards é feita um por um, o que é demorado para decks grandes. Este plano implementa a importação em massa via arquivo `.csv`, lendo colunas pelo **título** (não por posição), e inserindo tudo de uma vez no deck selecionado.
-
-## Visão Geral
-
-### O que mudar
-
-1. **Unificar a modal de "novo baralho" e "baralho por tema"** — hoje são dois modais separados. Vamos combinar em uma única modal com abas/opções:
-   - **Criar baralho** (o modal atual)
-   - **Baralho por tema** (o fluxo atual de mover cartões existentes)
-   - **Importar CSV** (novo)
-
-2. **Nova funcionalidade: Importar CSV** — upload de arquivo `.csv` com colunas mapeadas pelo título, inserção em massa no deck selecionado.
-
-3. **Regra de idioma** — manter a mesma regra existente: o deck deve conter apenas cartões de um idioma (hebraico OU grego). Se o CSV misturar idiomas, alertar o usuário. Se o deck já tiver cartões, verificar compatibilidade.
-
-## Fluxo de Importação
-
-### 1. Usuário abre a modal unificada
-
-A modal terá 3 abas ou cards clicáveis:
-- **Criar novo baralho** — pede nome, cria deck vazio
-- **Mover por tema** — fluxo existente (selecionar tag + deck destino)
-- **Importar CSV** — novo fluxo
-
-### 2. Usuário seleciona "Importar CSV"
-
-A interface mostra:
-- **Seletor de deck destino** — dropdown com decks existentes + opção "Criar novo deck" (que expande campo de nome)
-- **Upload do arquivo `.csv`** — input do tipo file, aceita apenas `.csv`
-- **Preview/validação** — antes de inserir, o sistema:
-  - Lê o CSV e mapeia colunas pelo título
-  - Detecta o idioma dos cartões (hebraico/grego) — pode ser coluna `language` no CSV ou inferência
-  - Verifica se o deck destino é compatível (mesmo idioma ou vazio)
-  - Mostra preview: quantos cartões serão importados, idioma detectado, amostra das primeiras linhas
-
-### 3. Validação e Inserção
-
-- Se o deck já tem cartões de idioma diferente → **erro com toast explicativo**
-- Se o CSV mistura idiomas → **erro com toast explicativo** (regra: todos os cartões do CSV devem ser do mesmo idioma)
-- Se tudo OK → inserção em massa via `DB::table('cards')->insert()` dentro de uma transação
-
-### 4. Feedback
-
-- Toast de sucesso: "X cartões importados com sucesso para o deck 'Nome do Deck'"
-- Se houver linhas com erro (campos obrigatórios faltando), toast com contagem de erros
-
-## Especificação do CSV
-
-### Colunas esperadas (pelo título, case-insensitive)
-
-| Coluna | Obrigatória | Descrição |
-|--------|-------------|-----------|
-| `word` | Sim | A palavra/card original |
-| `definition` | Sim | Definição/tradução |
-| `language` | Sim* | `el` (grego) ou `he` (hebraico) — *obrigatória se não houver coluna e o deck estiver vazio |
-| `pos` | Não | Part of speech |
-| `category` | Não | Categoria lexical |
-| `transliteration` | Não | Transliteração |
-| `example` | Não | Exemplo de uso |
-| `translation` | Não | Tradução alternativa |
-| `is_difficult` | Não | `true`/`false` ou `1`/`0` |
-
-### Mapeamento de colunas
-
-O sistema deve:
-1. Normalizar os títulos das colunas (trim, lowercase, remover acentos)
-2. Mapear variações comuns: `Word`, `WORD`, `word`, `palavra`, etc.
-3. Se uma coluna obrigatória estiver faltando, rejeitar o arquivo com mensagem clara
-
-## Estrutura de Arquivos
-
-### Novos arquivos
-
-```
-app/
-  Actions/
-    ImportCardsFromCsv.php          # Action principal: parse + insert
-  Livewire/
-    Components/
-      CsvImportModal.php           # Componente Livewire da modal (ou extensão do existente)
-    Forms/
-      CsvImportForm.php            # Formulário: deck selector + file upload
-  Services/
-    CsvParser.php                  # Parser do CSV com mapeamento de colunas
-
-resources/views/
-  components/
-    ⚡csv-import-section.blade.php # Seção de importação dentro da modal
-```
-
-### Arquivos modificados
-
-```
-resources/views/components/⚡new-deck-modal.blade.php  # Unificar com deck-from-tag + CSV
-resources/views/pages/⚡decks/decks.blade.php          # Botão que abre a modal unificada
-storage/framework/views/livewire/classes/...            # Re-compilar após mudanças
-```
-
-## Detalhes Técnicos
-
-### CsvParser Service
-
-```php
-// app/Services/CsvParser.php
-class CsvParser
-{
-    private const COLUMN_MAP = [
-        'word'           => 'word',
-        'palabra'        => 'word',
-        'definition'     => 'definition',
-        'definicao'      => 'definition',
-        'definición'     => 'definition',
-        'language'       => 'language',
-        'idioma'         => 'language',
-        'pos'            => 'pos',
-        'parte de fala'  => 'pos',
-        'category'       => 'category',
-        'categoria'      => 'category',
-        'transliteration'=> 'transliteration',
-        'transliteracao' => 'transliteration',
-        'example'        => 'example',
-        'exemplo'        => 'example',
-        'translation'    => 'translation',
-        'traducao'       => 'translation',
-        'is_difficult'   => 'is_difficult',
-        'dificil'        => 'is_difficult',
-    ];
-
-    public function parse(string $csvContent): array
-    // Retorna: ['headers' => [...], 'rows' => [...], 'errors' => [...]]
-    // Cada row é um array associativo com os campos mapeados
-
-    public function detectLanguage(array $rows): ?Language
-    // Detecta idioma a partir dos dados (coluna language ou inferência)
-}
-```
-
-### ImportCardsFromCsv Action
-
-```php
-// app/Actions/ImportCardsFromCsv.php
-class ImportCardsFromCsv
-{
-    public function handle(Deck $deck, array $rows, Language $language): ImportResult
-    {
-        // 1. Validar que deck é compatível com o idioma
-        // 2. Filtrar linhas com campos obrigatórios faltando
-        // 3. Preparar array para bulk insert
-        // 4. DB::transaction: inserir todos os cartões
-        // 5. Retornar ImportResult (sucesso, count, errors)
-    }
-}
-```
-
-### Livewire Component
-
-O componente da modal unificada precisa de:
-- **Estado:** `activeTab` (criar | tema | csv)
-- **Para CSV:** `selectedDeckId`, `csvFile`, `parsedData`, `detectedLanguage`, `importing`
-- **Ações:** `parseCsv()`, `validateImport()`, `executeImport()`
-
-### Linguagem dos Cartões no CSV
-
-Duas abordagens possíveis (a decidir):
-
-**Opção A:** Coluna `language` obrigatória no CSV — usuário deve especificar `el` ou `he` para cada linha (ou uma vez por arquivo).
-
-**Opção B:** Coluna `language` opcional — se ausente, o idioma é inferido do deck destino (ou o usuário seleciona na interface antes do upload).
-
-**Recomendação:** Opção B com fallback — se o deck já tem idioma, usar esse. Se vazio, pedir ao usuário que selecione. A coluna `language` no CSV é opcional e serve para override/validação.
-
-## Regras de Negócio
-
-1. **Um deck = um idioma** — regra existente, manter
-2. **CSV deve ter todos os cartões do mesmo idioma** — rejeitar CSVs mistos
-3. **Campos obrigatórios:** `word` e `definition` — linhas sem eles são ignoradas (com aviso)
-4. **Imagens:** não suportadas no CSV (manter `image_path` como null para cartões importados)
-5. **is_difficult:** default `false` se não especificado
-6. **is_active:** default `true` para todos os importados
-7. **Contadores:** `aced_count`, `missed_count`, `last_reviewed_at` = null/0 (cartões novos)
-
-## Ordem de Implementação
-
-1. Criar `CsvParser` service
-2. Criar `ImportCardsFromCsv` action
-3. Criar/estender componente Livewire da modal unificada
-4. Atualizar a view da modal com as 3 abas
-5. Testes: unitários para o parser, feature tests para a importação
-6. Compilar views (Blaze)
-7. Verificar lint/formato (`vendor/bin/pint --dirty`)
-
-## Testes
-
-### CsvParser
-- CSV com colunas em português
-- CSV com colunas em inglês
-- CSV com colunas mistas
-- CSV faltando coluna obrigatória
-- CSV vazio
-- CSV com BOM UTF-8
-- CSV com encoding diferente (Latin-1)
-
-### ImportCardsFromCsv
-- Importar em deck vazio (define idioma)
-- Importar em deck com cartões do mesmo idioma (OK)
-- Importar em deck com cartões de idioma diferente (bloqueado)
-- CSV com linhas inválidas (campos obrigatórios faltando)
-- CSV com idiomas mistos (bloqueado)
-
-### Livewire
-- Upload de arquivo e preview funcionando
-- Seleção de deck e detecção de idioma
-- Toast de sucesso após importação
-- Toast de erro com detalhes
+> Documento de trabalho para execução incremental pelo Claude Code.
+> Executar **uma fatia por vez**. Não avançar para a fatia seguinte sem os testes da anterior passando.
 
 ---
 
-# Fase 3: Reorganização Visual do Flashcard com Imagem
+## 0. Antes de escrever qualquer código
 
-## Contexto
+1. Rodar as skills/ferramentas de contexto do projeto (Laravel Boost, `search-docs` para Livewire 4, Flux UI, Pest v4).
+2. Ler `app/Models/Card.php`, as migrations existentes de `cards` e a estrutura atual de decks.
+3. **Não presumir** nomes de colunas: confirmar no schema real antes de escrever migration.
+4. Reportar ao usuário o que encontrou antes de começar a Fatia 1.
 
-Cartões com imagem atualmente mostram **imagem + termo** na frente e **definição + detalhes** no verso. A proposta é inverter: quando o cartão tem imagem, a frente mostra **somente a imagem** e o verso concentra **todas as informações** (termo + definição + transliteração + exemplo + tradução).
+---
 
-## Comportamento Atual vs Proposto
+## 1. Objetivo
 
-### Sem imagem (sem mudança)
+Treinar **reconhecimento e produção de formas flexionadas** (declinações gregas, depois hebraico), não vocabulário e não sintaxe.
 
-| Frente | Verso |
-|--------|-------|
-| word + POS badge | definition, transliteration, example, translation |
+O usuário já tem ~300 cartões em produção com: palavra, transliteração, significado, classe gramatical, frase de exemplo, tradução da frase.
 
-### Com imagem (mudança)
+Dois exercícios, ambos inspirados no Duolingo:
 
-| Frente | Verso |
-|--------|-------|
-| **somente a imagem** (sem word, sem POS badge) | **word** + definition + transliteration + example + translation |
+| Tipo | Duolingo chama de | Prioridade |
+|---|---|---|
+| Frase com lacuna, banco de palavras | *Tap Complete* | **Fase 1** |
+| Frase inteira embaralhada para remontar | *Translate Tap* | Fase 2 |
+| Lacuna com radical fixo + blocos de terminação | (variação própria) | Fase 2 |
 
-## Detalhes da Implementação
+---
 
-### Arquivo: `resources/views/pages/⚡study/study.blade.php`
+## 2. Regras não negociáveis
 
-**Frente do card (atual → proposto):**
+- **Nunca paradigma procedural.** OO ou funcional. Value objects imutáveis, services injetados, repositories para acesso a dados.
+- **Nenhuma regra gramatical hardcoded em PHP.** Toda terminação vive em arquivo de config. Regra nova = entrada no config + caso no dataset de teste.
+- **IA nunca em tempo de execução.** IA só em comando artisan offline, com fila de revisão humana.
+- **IA nunca corrige.** A correção é comparação determinística de string.
+- **Migrations apenas aditivas.** Colunas novas em `cards` são todas `nullable`. Base em produção com meses de dados: nada de renomear, remover ou tornar obrigatório.
+- **Livewire puro, sem Alpine.js e sem JavaScript custom.** Interações por `wire:click`. Se algo parecer exigir JS, parar e perguntar.
+- **Sem pacote novo** sem aprovação explícita do usuário.
 
-Atual (linhas 37-53):
-- Mostra POS badge (top-left)
-- Mostra imagem (se existe)
-- Mostra `word` (grande, centralizado)
-- Texto "Toque para virar"
+---
 
-Proposto:
-- Se `$this->card->imageUrl()` existe → mostrar **somente a imagem** (sem badge, sem word, sem hint de virar — a imagem fala por si)
-- Se não tem imagem → manter como está (badge + word + hint)
+## 3. Fatia 1 — Tabela de paradigmas (config)
 
-**Verso do card (atual → proposto):**
+Criar `config/grammar/greek.php`. Estrutura:
 
-Atual (linhas 55-73):
-- Mostra definition
-- Mostra transliteration (se existe)
-- Mostra example + translation (se existem, com divisor)
-
-Proposto (apenas quando tem imagem):
-- Mostra **word** (novo — grandes, centralizado, no topo)
-- Mostra definition
-- Mostra transliteration (se existe)
-- Mostra example + translation (se existem, com divisor)
-- **Sem mudança** quando não tem imagem (word já está na frente)
-
-### Lógica condicional
-
-```blade
-@if ($this->card->imageUrl())
-    {{-- FRENTE: só imagem --}}
-    {{-- VERSO: word + tudo mais --}}
-@else
-    {{-- FRENTE: word + badge (como hoje) --}}
-    {{-- VERSO: definition + detalhes (como hoje) --}}
-@endif
+```php
+return [
+    'paradigms' => [
+        'noun-2-masc' => [
+            'label' => '2ª declinação masculina (-ος)',
+            'pos' => 'noun',
+            'gender' => 'masc',
+            'endings' => [
+                'nom' => ['sg' => 'ος', 'pl' => 'οι'],
+                'gen' => ['sg' => 'ου', 'pl' => 'ων'],
+                'dat' => ['sg' => 'ῳ',  'pl' => 'οις'],
+                'acc' => ['sg' => 'ον', 'pl' => 'ους'],
+                'voc' => ['sg' => 'ε',  'pl' => 'οι'],
+            ],
+        ],
+        'noun-2-neut' => [
+            'label' => '2ª declinação neutra (-ον)',
+            'pos' => 'noun',
+            'gender' => 'neut',
+            'endings' => [
+                'nom' => ['sg' => 'ον', 'pl' => 'α'],
+                'gen' => ['sg' => 'ου', 'pl' => 'ων'],
+                'dat' => ['sg' => 'ῳ',  'pl' => 'οις'],
+                'acc' => ['sg' => 'ον', 'pl' => 'α'],
+                'voc' => ['sg' => 'ον', 'pl' => 'α'],
+            ],
+        ],
+        'noun-1-fem-eta' => [
+            'label' => '1ª declinação feminina em -η',
+            'pos' => 'noun',
+            'gender' => 'fem',
+            'endings' => [
+                'nom' => ['sg' => 'η',  'pl' => 'αι'],
+                'gen' => ['sg' => 'ης', 'pl' => 'ων'],
+                'dat' => ['sg' => 'ῃ',  'pl' => 'αις'],
+                'acc' => ['sg' => 'ην', 'pl' => 'ας'],
+                'voc' => ['sg' => 'η',  'pl' => 'αι'],
+            ],
+        ],
+        // 3ª declinação: nominativo singular é imprevisível.
+        // Ver `nom_sg_override` no cartão (Fatia 2).
+        'noun-3' => [
+            'label' => '3ª declinação (radical do genitivo)',
+            'pos' => 'noun',
+            'gender' => null,
+            'endings' => [
+                'nom' => ['sg' => null, 'pl' => 'ες'],
+                'gen' => ['sg' => 'ος',  'pl' => 'ων'],
+                'dat' => ['sg' => 'ι',   'pl' => 'σι'],
+                'acc' => ['sg' => 'α',   'pl' => 'ας'],
+                'voc' => ['sg' => null,  'pl' => 'ες'],
+            ],
+        ],
+    ],
+];
 ```
 
-### Ajustes de layout para frente com imagem
+> **Ação do usuário (não do Claude Code):** conferir cada linha contra a gramática de referência
+> e completar os paradigmas que faltam (1ª decl. α-pura, α-impura, masculina em -ας/-ης, adjetivos).
+> O Claude Code não deve inventar paradigmas de memória.
 
-- A imagem deve ocupar mais espaço (tlz `max-h-60 md:max-h-72` em vez de `max-h-40 md:max-h-48`)
-- Centralizada tanto horizontal quanto verticalmente
-- Sem `mb-4` (não tem word abaixo)
-- Borda `border-t` mantida (continua indicando que é a frente)
+**Aceite da fatia:** `php artisan tinker` consegue ler o config e listar os paradigmas.
 
-### Ajustes de layout para verso com imagem
+---
 
-- Adicionar `word` no topo do verso (apenas quando card tem imagem)
-- Usar `text-display-lg` para o word (mesmo estilo da frente atual)
-- Adicionar `mb-4` ou divisor entre word e definition para separar visualmente
+## 4. Fatia 2 — Migrations
 
-## Arquivos a modificar
+### 4.1 Colunas em `cards` (todas nullable)
 
+- `stem` (string) — radical. Para 3ª declinação, o radical do genitivo (σάρξ → `σαρκ`).
+- `paradigm_slug` (string) — chave do config.
+- `gender` (string) — `masc` | `fem` | `neut`.
+- `nom_sg_override` (string) — forma do nominativo singular quando irregular (3ª declinação).
+
+Cartões sem esses campos simplesmente não entram nos drills. Nada quebra.
+
+### 4.2 Tabela `sentences`
+
+| coluna | tipo | nota |
+|---|---|---|
+| `id` | id | |
+| `text` | text | frase completa em grego |
+| `translation_pt` | text | tradução em português |
+| `source` | string | `manual` \| `ai` |
+| `status` | string | `pending` \| `approved` \| `rejected` |
+| `grammar_focus` | string, nullable | ex.: `dat`, `gen-pl` |
+| `deck_id` | fk, nullable | de qual deck saiu o vocabulário |
+| timestamps | | |
+
+### 4.3 Tabela `sentence_tokens`
+
+| coluna | tipo | nota |
+|---|---|---|
+| `id` | id | |
+| `sentence_id` | fk cascade | |
+| `position` | integer | ordem na frase |
+| `surface` | string | forma como aparece na frase |
+| `card_id` | fk nullable | vínculo com o cartão (lexema) |
+| `case` | string, nullable | `nom` `gen` `dat` `acc` `voc` |
+| `number` | string, nullable | `sg` \| `pl` |
+| `is_target` | boolean | se pode virar lacuna |
+
+Token como linha é o eixo do sistema: lacuna, blocos, distratores e validação leem todos daqui.
+
+**Aceite:** migrations rodam e revertem sem erro; nenhum teste existente quebra.
+
+---
+
+## 5. Fatia 3 — Domínio: gerador de formas
+
+Namespace `App\Domain\Grammar`. Sem dependência de Eloquent.
+
+- `Feature` (enum ou VO): `GrammaticalCase`, `GrammaticalNumber`.
+- `Paradigm` — value object imutável construído a partir do config. Método `endingFor(GrammaticalCase $case, GrammaticalNumber $number): ?string`.
+- `ParadigmRepository` — carrega paradigmas do config, retorna `Paradigm`. Interface + implementação.
+- `FormGenerator` — `generate(string $stem, Paradigm $paradigm, GrammaticalCase $case, GrammaticalNumber $number): string`. Concatena. Se a terminação for `null` e houver `nom_sg_override`, usa o override.
+- `FormComparator` — `matches(string $expected, string $given): bool`. Compara **normalizando**: remove acentos, espíritos e iota subscrito, e faz `mb_strtolower`. Usar `Normalizer::normalize(..., Normalizer::FORM_D)` e remover marcas combinantes.
+
+> **Limitação assumida e documentada:** a concatenação acerta as letras mas não move o acento
+> (ἄνθρωπος → ἀνθρώπου). Por isso a comparação ignora diacríticos. O objetivo do usuário é
+> terminação, não acentuação. Não tentar resolver acento nesta versão.
+
+### Testes de ouro (obrigatórios)
+
+Criar `tests/Unit/Grammar/FormGeneratorTest.php` com um **dataset Pest** contendo o paradigma completo (10 formas) de pelo menos três palavras, copiado da gramática de referência do usuário:
+
+- `λόγος` (2ª masc)
+- `γραφή` (1ª fem em -η)
+- `ἔργον` (2ª neutra)
+
+Toda forma gerada tem que bater com a tabela. Este teste é o contrato do motor.
+
+### Comando de verificação
+
+`php artisan grammar:paradigm {lexeme}` — imprime a declinação completa em tabela no terminal, para o usuário conferir contra o livro ao cadastrar cada paradigma novo.
+
+---
+
+## 6. Fatia 4 — Geração de frases por IA (offline)
+
+Comando: `php artisan sentences:generate --deck=3 --case=dat --count=15`
+
+### Fluxo
+
+1. `SentenceGenerationService` busca no deck os cartões com `stem` e `paradigm_slug` preenchidos.
+2. Monta o prompt com **apenas esse vocabulário**.
+3. Chama a API (adapter `SentenceSource`, implementação para o provedor que o usuário usar).
+4. Valida a resposta.
+5. Persiste como `status = pending`.
+
+### Formato de saída exigido da IA
+
+Resposta **somente JSON**, sem markdown, sem preâmbulo:
+
+```json
+{
+  "sentences": [
+    {
+      "text": "ὁ ἀπόστολος γράφει τῷ ἀνθρώπῳ",
+      "translation_pt": "o apóstolo escreve ao homem",
+      "tokens": [
+        {"surface": "ὁ", "lemma": "ὁ", "case": "nom", "number": "sg"},
+        {"surface": "ἀπόστολος", "lemma": "ἀπόστολος", "case": "nom", "number": "sg"},
+        {"surface": "γράφει", "lemma": "γράφω", "case": null, "number": null},
+        {"surface": "τῷ", "lemma": "ὁ", "case": "dat", "number": "sg"},
+        {"surface": "ἀνθρώπῳ", "lemma": "ἄνθρωπος", "case": "dat", "number": "sg"}
+      ]
+    }
+  ]
+}
 ```
-resources/views/pages/⚡study/study.blade.php   # Lógica condicional frente/verso
-```
 
-## Testes
+Instruções a incluir no prompt: frases curtas (3 a 6 palavras), usar **exclusivamente** os lemas fornecidos, pelo menos um substantivo no caso pedido, sentido natural mas simplicidade acima de elegância.
 
-- Cartão **com imagem**: frente mostra só imagem, verso mostra word + definition + detalhes
-- Cartão **sem imagem**: frente mostra word + badge, verso mostra definition + detalhes (como hoje)
-- Flip funciona normalmente nos dois casos
-- Keyboard shortcuts (Space, 1, 2) funcionam nos dois casos
+### Regras de rejeição automática (`SentenceValidator`)
+
+Descartar a frase **sem mostrar ao usuário** se:
+
+1. Algum `lemma` não corresponde a um cartão do deck.
+2. Para todo token com `case` e `number` preenchidos e cartão com `stem`/`paradigm_slug`: `FormGenerator` gera a forma esperada e `FormComparator` não bate com `surface`.
+3. Nenhum token no caso pedido pelo `--case`.
+4. `text` não é igual à junção dos `surface` por espaço.
+
+O comando imprime no final: geradas / aceitas / rejeitadas, com o motivo de cada rejeição.
+
+**Aceite:** teste com resposta de IA falsificada (fixture JSON) — uma frase válida passa, uma com forma morfologicamente errada é rejeitada.
+
+---
+
+## 7. Fatia 5 — Tela de revisão (Livewire)
+
+Rota `/sentences/review`. Componente Livewire com Flux UI.
+
+- Lista as frases `pending`, uma por vez.
+- Mostra frase, tradução e os tokens com sua anotação.
+- Botões: **Aprovar**, **Rejeitar**, **Editar tradução**.
+- Aprovar → `status = approved`; a partir daí a frase entra no pool de drills.
+
+Sem JS. Navegação por `wire:click`.
+
+---
+
+## 8. Fatia 6 — Drill *Tap Complete*
+
+Rota `/drills/{deck}`. Componente Livewire.
+
+### Montagem do exercício (`DrillItemBuilder`)
+
+1. Sorteia uma `sentence` aprovada do deck com o foco gramatical escolhido.
+2. Sorteia um token com `is_target = true` e `card_id` preenchido.
+3. Substitui esse token por uma lacuna na exibição.
+4. Monta o banco de palavras: a forma correta + **3 distratores gerados pelo `FormGenerator` a partir do mesmo cartão em outros casos/números**.
+5. Embaralha.
+
+> Distrator é sempre o mesmo lexema em outra flexão. Nunca outra palavra.
+> A armadilha tem que ser gramatical, não lexical.
+
+### Correção
+
+`FormComparator` entre o bloco escolhido e o `surface` do token. Feedback imediato: acerto/erro, forma correta, e a análise (`dativo singular`).
+
+### Sessão
+
+12 exercícios por sessão. No fim, resumo: acertos e quais casos/números falharam.
+
+**Aceite:** dá para completar uma sessão inteira ponta a ponta com dados de seed.
+
+---
+
+## 9. Fase 2 (não fazer agora)
+
+- **Translate Tap**: remontar a frase inteira. Exige coluna `accepted_orders` em `sentences`, porque grego tem ordem livre de palavras. Só depois da Fase 1 rodando.
+- **Forja da palavra**: a lacuna mostra o radical fixo e blocos de terminação; o usuário monta `ἀνθρωπ` + `ῳ`.
+- **Hebraico**: mesma estrutura, `config/grammar/hebrew.php` (plural ־ים/־ות, construto, sufixos pronominais). Reaproveita todo o domínio.
+- **Agendamento por traço gramatical**: registrar erro por `case`+`number` e priorizar os fracos na montagem da sessão.
+
+---
+
+## 10. Ordem de execução resumida
+
+1. Ler o schema atual e reportar
+2. Config de paradigmas
+3. Migrations aditivas
+4. Domínio + testes de ouro + `grammar:paradigm`
+5. Comando de geração + validador (com fixtures)
+6. Tela de revisão
+7. Drill Tap Complete
+8. Parar. Usar. Só então Fase 2.

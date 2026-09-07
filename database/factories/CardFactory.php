@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Gender;
 use App\Enums\Language;
 use App\Models\Card;
 use App\Models\Deck;
@@ -30,12 +31,36 @@ class CardFactory extends Factory
             'definition' => $this->faker->sentence(),
             'example' => $this->faker->sentence(),
             'translation' => $this->faker->sentence(),
+            'stem' => null,
+            'paradigm_slug' => null,
+            'gender' => null,
+            'nom_sg_override' => null,
             'is_difficult' => false,
             'is_active' => true,
             'aced_count' => 0,
             'missed_count' => 0,
             'last_reviewed_at' => null,
         ];
+    }
+
+    /**
+     * A Greek card the morphology drills can inflect: `stem` + a paradigm
+     * from config/grammar/greek.php. Defaults to λόγος (2nd-decl masc).
+     */
+    public function declinable(
+        string $stem = 'λογ',
+        string $paradigmSlug = 'noun-2-masc',
+        Gender $gender = Gender::Masculine,
+        ?string $nomSgOverride = null,
+    ): static {
+        return $this->state(fn (array $attributes): array => [
+            'language' => Language::Greek,
+            'pos' => 'Noun',
+            'stem' => $stem,
+            'paradigm_slug' => $paradigmSlug,
+            'gender' => $gender,
+            'nom_sg_override' => $nomSgOverride,
+        ]);
     }
 
     /**

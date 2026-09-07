@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\Gender;
 use App\Enums\Language;
 use Carbon\CarbonImmutable;
 use Database\Factories\CardFactory;
@@ -23,6 +24,10 @@ use Illuminate\Support\Facades\Storage;
  * @property Language $language
  * @property string|null $pos
  * @property string|null $category
+ * @property string|null $stem
+ * @property string|null $paradigm_slug
+ * @property Gender|null $gender
+ * @property string|null $nom_sg_override
  * @property string $word
  * @property string|null $transliteration
  * @property string $definition
@@ -43,6 +48,10 @@ use Illuminate\Support\Facades\Storage;
     'language',
     'pos',
     'category',
+    'stem',
+    'paradigm_slug',
+    'gender',
+    'nom_sg_override',
     'word',
     'transliteration',
     'definition',
@@ -64,6 +73,7 @@ class Card extends Model
     {
         return [
             'language' => Language::class,
+            'gender' => Gender::class,
             'is_difficult' => 'boolean',
             'is_active' => 'boolean',
             'aced_count' => 'integer',
@@ -117,5 +127,19 @@ class Card extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * A card the morphology drills can use: it has both a `stem` and a
+     * `paradigm_slug`, so `GenerateInflectedForm` can build any form of
+     * it. Everything that feeds sentences or distractors goes through
+     * this scope rather than re-checking the two columns.
+     *
+     * @param  Builder<Card>  $query
+     * @return Builder<Card>
+     */
+    public function scopeDeclinable(Builder $query): Builder
+    {
+        return $query->whereNotNull('stem')->whereNotNull('paradigm_slug');
     }
 }
