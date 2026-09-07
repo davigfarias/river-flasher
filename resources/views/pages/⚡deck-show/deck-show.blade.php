@@ -28,9 +28,14 @@
                 </form>
             </div>
 
-            <flux:button :href="route('flashcards.create')" wire:navigate variant="primary" icon="plus" class="w-full sm:w-auto justify-center">
-                Adicionar cartão
-            </flux:button>
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <flux:button :href="route('decks.morphology', $this->deck)" wire:navigate variant="ghost" icon="language" class="justify-center">
+                    Anotar morfologia
+                </flux:button>
+                <flux:button :href="route('flashcards.create')" wire:navigate variant="primary" icon="plus" class="justify-center">
+                    Adicionar cartão
+                </flux:button>
+            </div>
         </section>
 
         @if ($this->inactiveCount > 0)
