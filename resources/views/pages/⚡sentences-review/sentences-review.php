@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\GetDeckGroupsByLanguage;
 use App\Actions\Orchestrators\GenerateSentencesOrchestrator;
 use App\Actions\Orchestrators\StoreManualSentenceOrchestrator;
 use App\Enums\GrammaticalCase;
@@ -42,15 +43,16 @@ new #[Layout('layouts::app')] #[Title('Revisar frases')] class extends Component
     public ?array $lastRun = null;
 
     /**
-     * @return SupportCollection<string, string>
+     * Decks split into Grego / Hebraico optgroups — same-named decks in
+     * different languages (e.g. two "Lição 3") are otherwise indistinguishable
+     * in the select.
+     *
+     * @return SupportCollection<int, array{label: string, decks: SupportCollection<string, string>}>
      */
     #[Computed]
-    public function decks(): SupportCollection
+    public function deckGroups(): SupportCollection
     {
-        return Deck::query()
-            ->where('access_token_id', session('access_token_id'))
-            ->orderBy('name')
-            ->pluck('name', 'uuid');
+        return app(GetDeckGroupsByLanguage::class)->handle((int) session('access_token_id'));
     }
 
     /**

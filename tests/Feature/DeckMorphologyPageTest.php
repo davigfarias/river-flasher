@@ -70,6 +70,74 @@ test('a bogus paradigm slug is rejected', function () {
         ->assertHasErrors("rows.{$card->id}.paradigm_slug");
 });
 
+test('each card shows its grammatical class as a badge', function () {
+    Card::factory()->create([
+        'deck_id' => $this->deck->id,
+        'language' => Language::Greek,
+        'word' => 'καί',
+        'pos' => 'Conjunção',
+    ]);
+
+    Livewire::test('pages::deck-morphology', ['deck' => $this->deck->uuid])
+        ->assertSee('Conjunção');
+});
+
+test('the trash icon removes a word from the list and it stays gone on reload', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id, 'language' => Language::Greek, 'word' => 'καί']);
+
+    Livewire::test('pages::deck-morphology', ['deck' => $this->deck->uuid])
+        ->assertSee('καί')
+        ->call('exclude', $card->id)
+        ->assertDontSee('καί');
+
+    expect($card->fresh()->morphology_excluded_at)->not->toBeNull();
+
+    Livewire::test('pages::deck-morphology', ['deck' => $this->deck->uuid])
+        ->assertDontSee('καί');
+});
+
+test('a removed word can be viewed and restored', function () {
+    $card = Card::factory()->create([
+        'deck_id' => $this->deck->id,
+        'language' => Language::Greek,
+        'word' => 'καί',
+        'morphology_excluded_at' => now(),
+    ]);
+
+    Livewire::test('pages::deck-morphology', ['deck' => $this->deck->uuid])
+        ->assertDontSee('καί')
+        ->set('showExcluded', true)
+        ->assertSee('καί')
+        ->call('restore', $card->id)
+        ->assertSet('showExcluded', false);
+
+    expect($card->fresh()->morphology_excluded_at)->toBeNull();
+});
+
+test('a removed word is left out of save and of the annotated count', function () {
+    $card = Card::factory()->declinable()->create([
+        'deck_id' => $this->deck->id,
+        'word' => 'λόγος',
+        'morphology_excluded_at' => now(),
+    ]);
+
+    $component = Livewire::test('pages::deck-morphology', ['deck' => $this->deck->uuid])
+        ->set('onlyPending', false)
+        ->assertDontSee('λόγος');
+
+    expect($component->get('annotatedCount'))->toBe(0);
+});
+
+test('exclude ignores a card id from another deck', function () {
+    $otherDeck = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    $foreignCard = Card::factory()->create(['deck_id' => $otherDeck->id, 'language' => Language::Greek]);
+
+    Livewire::test('pages::deck-morphology', ['deck' => $this->deck->uuid])
+        ->call('exclude', $foreignCard->id);
+
+    expect($foreignCard->fresh()->morphology_excluded_at)->toBeNull();
+});
+
 test('it cannot write morphology onto a card from another deck', function () {
     $otherDeck = Deck::factory()->create(['access_token_id' => $this->token->id]);
     $foreignCard = Card::factory()->create(['deck_id' => $otherDeck->id, 'language' => Language::Greek]);

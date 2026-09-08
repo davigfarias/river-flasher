@@ -19,18 +19,26 @@
         <div class="flex flex-wrap items-center gap-4">
             <flux:checkbox
                 wire:model.live="onlyPending"
+                :disabled="$this->showExcluded"
                 :label="$this->annotatedCount > 0 ? 'Só os pendentes ('.$this->annotatedCount.' já anotado(s) oculto(s))' : 'Só os pendentes'"
             />
+            @if ($this->excludedCount > 0)
+                <flux:checkbox wire:model.live="showExcluded" :label="'Removidas ('.$this->excludedCount.')'" />
+            @endif
             <flux:spacer />
-            <flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled">
-                Salvar
-            </flux:button>
+            @unless ($this->showExcluded)
+                <flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled">
+                    Salvar
+                </flux:button>
+            @endunless
         </div>
 
         @if ($this->cards->isEmpty())
             <div class="bg-surface-container p-12 rounded-xl border border-outline-variant shadow-sm text-center">
                 <flux:text>
-                    @if ($this->onlyPending && $this->annotatedCount > 0)
+                    @if ($this->showExcluded)
+                        Nenhuma palavra removida.
+                    @elseif ($this->onlyPending && $this->annotatedCount > 0)
                         Todos os cartões gregos deste baralho já estão anotados.
                     @else
                         Este baralho não tem cartões gregos para anotar.
@@ -42,14 +50,33 @@
                 @foreach ($this->cards as $card)
                     <div wire:key="card-{{ $card->id }}" class="bg-surface-container p-5 rounded-xl border border-outline-variant shadow-sm">
                         <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-4 lg:gap-6">
-                            <div class="min-w-0">
-                                <h3 class="text-headline-sm text-on-surface" lang="el">{{ $card->word }}</h3>
-                                @if ($card->transliteration)
-                                    <p class="text-body-sm text-on-surface-variant">/{{ $card->transliteration }}/</p>
+                            <div class="min-w-0 flex items-start gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h3 class="text-headline-sm text-on-surface" lang="el">{{ $card->word }}</h3>
+                                        @if ($card->pos)
+                                            <flux:badge size="sm" color="zinc">{{ $card->pos }}</flux:badge>
+                                        @endif
+                                    </div>
+                                    @if ($card->transliteration)
+                                        <p class="text-body-sm text-on-surface-variant">/{{ $card->transliteration }}/</p>
+                                    @endif
+                                    <p class="text-body-sm text-on-surface-variant mt-1">{{ $card->definition }}</p>
+                                </div>
+                                @if ($this->showExcluded)
+                                    <flux:button type="button" size="sm" variant="ghost" icon="arrow-uturn-left"
+                                        wire:click="restore({{ $card->id }})" wire:loading.attr="disabled"
+                                        title="Voltar para a lista">
+                                        Restaurar
+                                    </flux:button>
+                                @else
+                                    <flux:button type="button" size="sm" variant="ghost" icon="trash"
+                                        wire:click="exclude({{ $card->id }})" wire:loading.attr="disabled"
+                                        title="Remover da lista (não declina)" class="shrink-0" />
                                 @endif
-                                <p class="text-body-sm text-on-surface-variant mt-1">{{ $card->definition }}</p>
                             </div>
 
+                            @unless ($this->showExcluded)
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <flux:select wire:model.live="rows.{{ $card->id }}.paradigm_slug" label="Paradigma" placeholder="Selecione…">
                                     @foreach ($this->paradigmOptions as $slug => $label)
@@ -77,6 +104,7 @@
                                     </p>
                                 @endif
                             </div>
+                            @endunless
                         </div>
                     </div>
                 @endforeach

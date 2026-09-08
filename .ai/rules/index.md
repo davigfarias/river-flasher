@@ -10,6 +10,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/{Models/AccessToken.php,Http/Middleware/EnsureAccessTokenIsValid.php,Console/Commands/*AccessToken*.php} | .ai/rules/commands.md |
 | resources/views/components/create-deck-menu-modal.blade.php | .ai/rules/components.md |
 | database/** | .ai/rules/database.md |
+| resources/views/pages/⚡deck-morphology/*.php | .ai/rules/deck-morphology.md |
 | app/Livewire/Forms/*.php | .ai/rules/forms.md |
 | .env | .ai/rules/general.md |
 | app/Providers/AppServiceProvider.php | .ai/rules/providers.md |

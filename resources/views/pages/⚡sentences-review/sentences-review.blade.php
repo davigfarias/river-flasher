@@ -119,8 +119,12 @@
             <flux:text>Faz algumas chamadas ao modelo, valida a morfologia de cada frase e guarda as boas como pendentes.</flux:text>
 
             <flux:select wire:model="genDeck" label="Baralho" placeholder="Selecione…">
-                @foreach ($this->decks as $uuid => $name)
-                    <flux:select.option :value="$uuid">{{ $name }}</flux:select.option>
+                @foreach ($this->deckGroups as $group)
+                    <flux:select.group :label="$group['label']">
+                        @foreach ($group['decks'] as $uuid => $name)
+                            <flux:select.option :value="$uuid">{{ $name }}</flux:select.option>
+                        @endforeach
+                    </flux:select.group>
                 @endforeach
             </flux:select>
 
@@ -150,8 +154,12 @@
             <flux:heading size="lg">Nova frase</flux:heading>
 
             <flux:select wire:model="manualDeck" label="Baralho" placeholder="Selecione…">
-                @foreach ($this->decks as $uuid => $name)
-                    <flux:select.option :value="$uuid">{{ $name }}</flux:select.option>
+                @foreach ($this->deckGroups as $group)
+                    <flux:select.group :label="$group['label']">
+                        @foreach ($group['decks'] as $uuid => $name)
+                            <flux:select.option :value="$uuid">{{ $name }}</flux:select.option>
+                        @endforeach
+                    </flux:select.group>
                 @endforeach
             </flux:select>
 

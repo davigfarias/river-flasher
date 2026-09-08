@@ -4,6 +4,7 @@ use App\Actions\GenerateInflectedForm;
 use App\Actions\GetParadigm;
 use App\Actions\ListParadigms;
 use App\Actions\Orchestrators\SaveCardsMorphologyOrchestrator;
+use App\Actions\SetCardMorphologyExclusion;
 use App\DTO\CardMorphology;
 use App\Enums\Gender;
 use App\Enums\GrammaticalCase;
@@ -28,6 +29,12 @@ new #[Layout('layouts::app')] #[Title('Anotar morfologia')] class extends Compon
      * config/grammar/greek.php.
      */
     public bool $onlyPending = true;
+
+    /**
+     * When on, the list shows only the cards that were removed from
+     * annotation (via the trash icon), each with a restore button.
+     */
+    public bool $showExcluded = false;
 
     /**
      * One row of inputs per card, keyed by card id. Seeded from the card's
@@ -67,7 +74,12 @@ new #[Layout('layouts::app')] #[Title('Anotar morfologia')] class extends Compon
     #[Computed]
     public function cards(): Collection
     {
+        if ($this->showExcluded) {
+            return $this->greekCards()->whereNotNull('morphology_excluded_at')->values();
+        }
+
         return $this->greekCards()
+            ->whereNull('morphology_excluded_at')
             ->when($this->onlyPending, fn ($cards) => $cards->whereNull('paradigm_slug'))
             ->values();
     }
@@ -75,7 +87,16 @@ new #[Layout('layouts::app')] #[Title('Anotar morfologia')] class extends Compon
     #[Computed]
     public function annotatedCount(): int
     {
-        return $this->greekCards()->whereNotNull('paradigm_slug')->count();
+        return $this->greekCards()
+            ->whereNull('morphology_excluded_at')
+            ->whereNotNull('paradigm_slug')
+            ->count();
+    }
+
+    #[Computed]
+    public function excludedCount(): int
+    {
+        return $this->greekCards()->whereNotNull('morphology_excluded_at')->count();
     }
 
     /**
@@ -128,8 +149,26 @@ new #[Layout('layouts::app')] #[Title('Anotar morfologia')] class extends Compon
         );
     }
 
+    /**
+     * Remove a word from the annotation list — the user has decided it
+     * doesn't decline. Reversible from the "Removidas" view.
+     */
+    public function exclude(int $cardId, SetCardMorphologyExclusion $action): void
+    {
+        $this->setExclusion($cardId, true, $action);
+    }
+
+    public function restore(int $cardId, SetCardMorphologyExclusion $action): void
+    {
+        $this->setExclusion($cardId, false, $action);
+    }
+
     public function save(SaveCardsMorphologyOrchestrator $orchestrator): void
     {
+        if ($this->showExcluded) {
+            return;
+        }
+
         $slugs = $this->paradigmOptions->keys()->all();
 
         $this->validate([
@@ -164,6 +203,23 @@ new #[Layout('layouts::app')] #[Title('Anotar morfologia')] class extends Compon
             text: $count.' '.($count === 1 ? 'cartão anotado' : 'cartões anotados').'.',
             variant: 'success',
         );
+    }
+
+    private function setExclusion(int $cardId, bool $excluded, SetCardMorphologyExclusion $action): void
+    {
+        $card = $this->greekCards()->firstWhere('id', $cardId);
+
+        if (! $card) {
+            return;
+        }
+
+        $action->handle($card, $excluded);
+
+        unset($this->cards, $this->annotatedCount, $this->excludedCount);
+
+        if ($this->showExcluded && $this->excludedCount === 0) {
+            $this->showExcluded = false;
+        }
     }
 
     /**

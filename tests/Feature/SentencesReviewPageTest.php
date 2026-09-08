@@ -86,6 +86,20 @@ test('the "Gerar frases" action runs the orchestrator and reports the result', f
     expect(Sentence::where('source', SentenceSource::Ai)->where('status', SentenceStatus::Pending)->count())->toBe(1);
 });
 
+test('the deck select splits same-named decks into Grego and Hebraico groups', function () {
+    $greek = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Lição 3']);
+    $hebrew = Deck::factory()->create(['access_token_id' => $this->token->id, 'name' => 'Lição 3']);
+    Card::factory()->create(['deck_id' => $greek->id, 'language' => Language::Greek]);
+    Card::factory()->create(['deck_id' => $hebrew->id, 'language' => Language::Hebrew]);
+
+    $groups = Livewire::test('pages::sentences-review')->get('deckGroups')->keyBy('label');
+
+    expect($groups)->toHaveKeys(['Grego', 'Hebraico'])
+        ->and($groups['Grego']['decks'])->toHaveKey($greek->uuid)
+        ->and($groups['Grego']['decks'])->not->toHaveKey($hebrew->uuid)
+        ->and($groups['Hebraico']['decks'])->toHaveKey($hebrew->uuid);
+});
+
 test('a manual sentence is stored pending with whitespace-split tokens', function () {
     Livewire::test('pages::sentences-review')
         ->set('manualDeck', $this->deck->uuid)

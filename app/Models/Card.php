@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $paradigm_slug
  * @property Gender|null $gender
  * @property string|null $nom_sg_override
+ * @property CarbonImmutable|null $morphology_excluded_at
  * @property string $word
  * @property string|null $transliteration
  * @property string $definition
@@ -52,6 +53,7 @@ use Illuminate\Support\Facades\Storage;
     'paradigm_slug',
     'gender',
     'nom_sg_override',
+    'morphology_excluded_at',
     'word',
     'transliteration',
     'definition',
@@ -79,6 +81,7 @@ class Card extends Model
             'aced_count' => 'integer',
             'missed_count' => 'integer',
             'last_reviewed_at' => 'immutable_datetime',
+            'morphology_excluded_at' => 'immutable_datetime',
         ];
     }
 
