@@ -78,6 +78,16 @@ test('saving without touching the image leaves it untouched', function () {
     Storage::disk('public')->assertExists($originalPath);
 });
 
+test('a file with no preview support renders a notice instead of throwing', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id]);
+
+    Livewire::test('edit-card-modal')
+        ->call('open', $card->id)
+        ->set('form.image', UploadedFile::fake()->create('drawing.avif', 120, 'image/avif'))
+        ->assertOk()
+        ->assertSee('Sem pré-visualização para este formato');
+});
+
 test('uploading a new image replaces the stored file', function () {
     Storage::fake('public');
     $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id]);

@@ -107,8 +107,14 @@
                         <flux:input wire:model="form.image" type="file" accept="image/*"/>
                     </div>
 
+                    <flux:text wire:loading wire:target="form.image" class="text-body-sm">Enviando imagem…</flux:text>
+
                     @if ($form->image)
-                        <img src="{{ $form->image->temporaryUrl() }}" alt="Pré-visualização" class="h-24 rounded-lg border border-outline-variant object-cover">
+                        @if ($form->image->isPreviewable())
+                            <img src="{{ $form->image->temporaryUrl() }}" alt="Pré-visualização" class="h-24 rounded-lg border border-outline-variant object-cover">
+                        @else
+                            <flux:text class="text-body-sm text-on-surface-variant">Sem pré-visualização para este formato — a imagem será convertida ao salvar.</flux:text>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -118,7 +124,14 @@
 
                 <div class="flex gap-4">
                     <flux:button :href="route('dashboard')" wire:navigate variant="ghost" class="flex-1 sm:flex-none justify-center">Cancelar</flux:button>
-                    <flux:button type="submit" variant="primary" icon="check" class="flex-1 sm:flex-none justify-center">Adicionar ao baralho</flux:button>
+                    <flux:button
+                        type="submit"
+                        variant="primary"
+                        icon="check"
+                        wire:target="form.image, addToDeck"
+                        wire:loading.attr="disabled"
+                        class="flex-1 sm:flex-none justify-center"
+                    >Adicionar ao baralho</flux:button>
                 </div>
             </div>
         </form>

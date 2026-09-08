@@ -11,6 +11,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | resources/views/components/create-deck-menu-modal.blade.php | .ai/rules/components.md |
 | database/** | .ai/rules/database.md |
 | resources/views/pages/⚡deck-morphology/*.php | .ai/rules/deck-morphology.md |
+| resources/views/{pages/⚡flashcards-create/*,components/⚡edit-card-modal*} | .ai/rules/flashcards-create.md |
 | app/Livewire/Forms/*.php | .ai/rules/forms.md |
 | .env | .ai/rules/general.md |
 | app/Providers/AppServiceProvider.php | .ai/rules/providers.md |

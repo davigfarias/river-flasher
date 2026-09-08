@@ -111,8 +111,14 @@ new class extends Component
         <div class="space-y-2">
             <flux:input wire:model="form.image" type="file" accept="image/*" label="Imagem (opcional)" />
 
+            <flux:text wire:loading wire:target="form.image" class="text-body-sm">Enviando imagem…</flux:text>
+
             @if ($form->image)
-                <img src="{{ $form->image->temporaryUrl() }}" alt="Pré-visualização" class="h-24 rounded-lg border border-outline-variant object-cover">
+                @if ($form->image->isPreviewable())
+                    <img src="{{ $form->image->temporaryUrl() }}" alt="Pré-visualização" class="h-24 rounded-lg border border-outline-variant object-cover">
+                @else
+                    <flux:text class="text-body-sm text-on-surface-variant">Sem pré-visualização para este formato — a imagem será convertida ao salvar.</flux:text>
+                @endif
             @elseif ($currentImageUrl && ! $form->removeImage)
                 <div class="flex items-center gap-3">
                     <img src="{{ $currentImageUrl }}" alt="Imagem atual" class="h-24 rounded-lg border border-outline-variant object-cover">
@@ -127,7 +133,12 @@ new class extends Component
             <flux:modal.close>
                 <flux:button variant="ghost">Cancelar</flux:button>
             </flux:modal.close>
-            <flux:button type="submit" variant="primary">Salvar alterações</flux:button>
+            <flux:button
+                type="submit"
+                variant="primary"
+                wire:target="form.image, save"
+                wire:loading.attr="disabled"
+            >Salvar alterações</flux:button>
         </div>
     </form>
 </flux:modal>

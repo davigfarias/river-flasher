@@ -148,6 +148,13 @@ test('a card matching the deck\'s existing language is saved', function () {
     expect(Card::count())->toBe(2);
 });
 
+test('a file with no preview support renders a notice instead of throwing', function () {
+    Livewire::test('pages::flashcards-create')
+        ->set('form.image', UploadedFile::fake()->create('drawing.avif', 120, 'image/avif'))
+        ->assertOk()
+        ->assertSee('Sem pré-visualização para este formato');
+});
+
 test('an uploaded image is stored and attached to the created card', function () {
     Storage::fake('public');
 
