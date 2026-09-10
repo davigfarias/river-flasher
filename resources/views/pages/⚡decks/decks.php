@@ -26,6 +26,20 @@ new #[Layout('layouts::app')] #[Title('Baralhos')] class extends Component
         $this->selectedDeckIds = [];
     }
 
+    public function chooseStudyMode(string $uuid): void
+    {
+        $this->dispatch('choose-study-mode', deckUuids: [$uuid])->to('study-mode-modal');
+    }
+
+    public function chooseStudyModeForSelected(): void
+    {
+        if (count($this->selectedDeckIds) < 2) {
+            return;
+        }
+
+        $this->dispatch('choose-study-mode', deckUuids: $this->selectedDeckIds)->to('study-mode-modal');
+    }
+
     /**
      * @return Collection<int, array{name: string, uuid: string, meta: string, language: ?Language, urgent: bool, dim: bool, cardsCount: int, lastReviewedAt: ?CarbonImmutable}>
      */

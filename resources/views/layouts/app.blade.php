@@ -68,6 +68,7 @@
         <x-create-deck-menu-modal />
         <livewire:new-deck-modal />
         <x-deck-from-tag-modal />
+        <livewire:study-mode-modal />
 
         @livewireScripts
         @fluxScripts

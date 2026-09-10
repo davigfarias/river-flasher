@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\ReviewResult;
-use App\Enums\StudyMode;
-use Carbon\CarbonImmutable;
-use Database\Factories\ReviewFactory;
+use Database\Factories\TranslationExerciseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,31 +16,27 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $card_id
  * @property int $access_token_id
- * @property ReviewResult $result
- * @property StudyMode $mode
- * @property CarbonImmutable $reviewed_at
+ * @property string $target_text
+ * @property array<int, string> $tokens
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[UseFactory(ReviewFactory::class)]
+#[UseFactory(TranslationExerciseFactory::class)]
 #[Fillable([
     'card_id',
     'access_token_id',
-    'result',
-    'mode',
-    'reviewed_at',
+    'target_text',
+    'tokens',
 ])]
-class Review extends Model
+class TranslationExercise extends Model
 {
-    /** @use HasFactory<ReviewFactory> */
+    /** @use HasFactory<TranslationExerciseFactory> */
     use HasFactory;
 
     public function casts(): array
     {
         return [
-            'result' => ReviewResult::class,
-            'mode' => StudyMode::class,
-            'reviewed_at' => 'immutable_datetime',
+            'tokens' => 'array',
         ];
     }
 
@@ -53,13 +46,5 @@ class Review extends Model
     public function card(): BelongsTo
     {
         return $this->belongsTo(Card::class);
-    }
-
-    /**
-     * @return BelongsTo<AccessToken, $this>
-     */
-    public function accessToken(): BelongsTo
-    {
-        return $this->belongsTo(AccessToken::class);
     }
 }

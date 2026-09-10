@@ -41,7 +41,7 @@
     </flux:navlist>
 
     <div class="mt-auto pt-4 border-t border-outline-variant">
-        <flux:button :href="route('study')" wire:navigate icon="play" variant="primary" class="w-full justify-center">
+        <flux:button x-on:click="$dispatch('choose-study-mode')" icon="play" variant="primary" class="w-full justify-center">
             Iniciar sessão
         </flux:button>
     </div>

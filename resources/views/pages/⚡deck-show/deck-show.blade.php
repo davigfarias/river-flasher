@@ -37,6 +37,13 @@
                 <flux:button :href="route('decks.morphology', $this->deck)" wire:navigate variant="ghost" icon="language" class="justify-center">
                     Anotar morfologia
                 </flux:button>
+                @if ($this->translationBankCount > 0)
+                    <flux:modal.trigger name="confirm-reset-translation-bank">
+                        <flux:button variant="ghost" icon="arrow-path" class="justify-center">
+                            Resetar banco de frases
+                        </flux:button>
+                    </flux:modal.trigger>
+                @endif
                 <flux:button :href="route('flashcards.create')" wire:navigate variant="primary" icon="plus" class="justify-center">
                     Adicionar cartão
                 </flux:button>
@@ -163,6 +170,25 @@
                     <flux:button variant="ghost">Cancelar</flux:button>
                 </flux:modal.close>
                 <flux:button variant="danger" wire:click="deactivateSelected">Desativar</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal name="confirm-reset-translation-bank" class="w-full md:w-96">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Resetar o banco de frases?</flux:heading>
+                <flux:text class="mt-2">
+                    As {{ $this->translationBankCount }} {{ $this->translationBankCount === 1 ? 'frase de tradução guardada será apagada' : 'frases de tradução guardadas serão apagadas' }} e
+                    reconstruídas a partir dos cartões atuais no próximo treino de tradução. O histórico de acertos não é afetado.
+                </flux:text>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancelar</flux:button>
+                </flux:modal.close>
+                <flux:button variant="primary" wire:click="resetTranslationBank">Resetar</flux:button>
             </div>
         </div>
     </flux:modal>

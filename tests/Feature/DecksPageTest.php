@@ -120,13 +120,22 @@ test('the custom study button stays hidden until at least two decks are selected
     expect($component->get('selectedDeckIds'))->toHaveCount(2);
 });
 
-test('the custom study button links to a study session scoped to just the selected decks', function () {
+test('the custom study button opens the mode picker for just the selected decks', function () {
     $deckA = Deck::factory()->create(['access_token_id' => $this->token->id]);
     $deckB = Deck::factory()->create(['access_token_id' => $this->token->id]);
 
     Livewire::test('pages::decks')
         ->set('selectedDeckIds', [$deckA->uuid, $deckB->uuid])
-        ->assertSeeHtml('decks='.$deckA->uuid.'%2C'.$deckB->uuid);
+        ->call('chooseStudyModeForSelected')
+        ->assertDispatched('choose-study-mode', deckUuids: [$deckA->uuid, $deckB->uuid]);
+});
+
+test('a single deck tile opens the mode picker for that deck', function () {
+    $deck = Deck::factory()->create(['access_token_id' => $this->token->id]);
+
+    Livewire::test('pages::decks')
+        ->call('chooseStudyMode', $deck->uuid)
+        ->assertDispatched('choose-study-mode', deckUuids: [$deck->uuid]);
 });
 
 test('toggling a language filter clears the deck selection', function () {

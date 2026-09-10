@@ -2,6 +2,7 @@
 
 use App\Actions\Orchestrators\AnswerCardOrchestrator;
 use App\Enums\ReviewResult;
+use App\Enums\StudyMode;
 use App\Models\AccessToken;
 use App\Models\Card;
 use App\Models\Deck;
@@ -43,4 +44,24 @@ test('forgetting a card increments missed_count and records the review', functio
         ->and($card->missed_count)->toBe(1);
 
     expect(Review::where('card_id', $card->id)->sole()->result)->toBe(ReviewResult::Forgot);
+});
+
+test('a non-default mode grades its own counter pair and stamps the review', function () {
+    $card = Card::factory()->create([
+        'deck_id' => $this->deck->id,
+        'aced_count' => 5,
+        'translation_aced_count' => 1,
+        'translation_missed_count' => 0,
+    ]);
+
+    $counters = app(AnswerCardOrchestrator::class)->handle($card, ReviewResult::Remembered, StudyMode::Translation);
+
+    expect($counters->acedCount)->toBe(2);
+
+    $card->refresh();
+
+    expect($card->translation_aced_count)->toBe(2)
+        ->and($card->aced_count)->toBe(5);
+
+    expect(Review::where('card_id', $card->id)->sole()->mode)->toBe(StudyMode::Translation);
 });

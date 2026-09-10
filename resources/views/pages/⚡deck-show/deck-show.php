@@ -1,10 +1,11 @@
 <?php
 
+use App\Actions\ResetTranslationBank;
 use App\Actions\SetCardsActiveState;
 use App\Actions\ToggleCardActive;
 use App\Actions\UpdateDeck;
 use App\Livewire\Forms\DeckForm;
-use App\Models\{Card, Deck, Sentence};
+use App\Models\{Card, Deck, Sentence, TranslationExercise};
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\{Computed, Layout, Locked, On, Title};
@@ -64,6 +65,29 @@ new #[Layout('layouts::app')] #[Title('Baralho')] class extends Component
     public function hasApprovedSentences(): bool
     {
         return Sentence::query()->where('deck_id', $this->deckId)->approved()->exists();
+    }
+
+    #[Computed]
+    public function translationBankCount(): int
+    {
+        return TranslationExercise::query()
+            ->whereIn('card_id', $this->deck->cards()->select('id'))
+            ->count();
+    }
+
+    public function resetTranslationBank(ResetTranslationBank $action): void
+    {
+        $count = $action->handle($this->deck);
+
+        Flux::modal('confirm-reset-translation-bank')->close();
+
+        Flux::toast(
+            heading: 'Banco de frases resetado',
+            text: $count.' '.($count === 1 ? 'frase será regerada' : 'frases serão regeradas').' no próximo treino de tradução.',
+            variant: 'success',
+        );
+
+        unset($this->translationBankCount);
     }
 
     public function updatedShowInactive(): void

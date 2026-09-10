@@ -28,4 +28,9 @@ new #[Layout('layouts::app')] #[Title('Painel')] class extends Component
             default => 'Boa noite.',
         };
     }
+
+    public function chooseStudyMode(?string $uuid = null): void
+    {
+        $this->dispatch('choose-study-mode', deckUuids: $uuid !== null ? [$uuid] : [])->to('study-mode-modal');
+    }
 };

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\ReviewResult;
+use App\Enums\StudyMode;
 use App\Models\AccessToken;
 use App\Models\Card;
 use App\Models\Review;
@@ -35,7 +36,15 @@ class ReviewFactory extends Factory
                 ReviewResult::Remembered,
                 ReviewResult::Forgot,
             ]),
+            'mode' => StudyMode::Meaning,
             'reviewed_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
         ];
+    }
+
+    public function mode(StudyMode $mode): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'mode' => $mode,
+        ]);
     }
 }

@@ -6,6 +6,7 @@ namespace App\Actions\Orchestrators;
 
 use App\Actions\FindCardsToStudy;
 use App\DTO\StudySessionData;
+use App\Enums\StudyMode;
 use App\Models\Deck;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -21,9 +22,13 @@ final readonly class StartStudySessionOrchestrator
      *
      * @param  Collection<int, Deck>  $decks
      */
-    public function handle(int $accessTokenId, Collection $decks): StudySessionData
+    public function handle(int $accessTokenId, Collection $decks, StudyMode $mode = StudyMode::Meaning): StudySessionData
     {
-        $cards = $this->findCardsToStudy->handle($accessTokenId, $decks->pluck('id')->all());
+        $cards = $this->findCardsToStudy->handle(
+            $accessTokenId,
+            $decks->pluck('id')->all(),
+            mode: $mode,
+        );
 
         $deckName = match (true) {
             $decks->isEmpty() => 'Todos os baralhos',
@@ -34,6 +39,7 @@ final readonly class StartStudySessionOrchestrator
         return new StudySessionData(
             deckName: $deckName,
             cardIds: $cards->pluck('id')->all(),
+            mode: $mode,
         );
     }
 }

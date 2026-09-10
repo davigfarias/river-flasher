@@ -37,7 +37,7 @@
                 @if (count($selectedDeckIds) >= 2)
                     <div class="flex items-center gap-3 mb-4">
                         <span class="text-label-sm text-on-surface-variant">{{ count($selectedDeckIds) }} baralhos selecionados</span>
-                        <flux:button :href="route('study', ['decks' => implode(',', $selectedDeckIds)])" wire:navigate variant="primary" icon="play" size="sm">
+                        <flux:button wire:click="chooseStudyModeForSelected" variant="primary" icon="play" size="sm">
                             Estudar selecionados
                         </flux:button>
                     </div>
@@ -46,10 +46,10 @@
                 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($this->decks as $deck)
                     <div class="relative" wire:key="deck-{{ $deck['uuid'] }}">
-                        <a
-                            href="{{ route('study', ['deck' => $deck['uuid']]) }}"
-                            wire:navigate
-                            class="bg-surface-container hover:bg-surface-container-high transition-colors duration-300 p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col gap-4 group {{ $deck['dim'] ? 'opacity-80' : '' }}"
+                        <button
+                            type="button"
+                            wire:click="chooseStudyMode('{{ $deck['uuid'] }}')"
+                            class="w-full text-left cursor-pointer bg-surface-container hover:bg-surface-container-high transition-colors duration-300 p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col gap-4 group {{ $deck['dim'] ? 'opacity-80' : '' }}"
                         >
                             <div class="flex items-start justify-between">
                                 <div class="w-12 h-12 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant text-primary">
@@ -73,7 +73,7 @@
                                     <span class="text-label-sm text-on-surface-variant">{{ $deck['lastReviewedAt']->diffForHumans() }}</span>
                                 @endif
                             </div>
-                        </a>
+                        </button>
 
                         <div class="absolute top-4 right-4 z-10 flex items-center gap-2">
                             <flux:checkbox value="{{ $deck['uuid'] }}" title="Selecionar para sessão personalizada" />

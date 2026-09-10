@@ -15,7 +15,7 @@
                     @endif
                 </p>
             </div>
-            <flux:button :href="route('study')" wire:navigate variant="primary" icon="academic-cap" :disabled="$this->dashboard->totalCards === 0" class="w-full md:w-auto justify-center">
+            <flux:button wire:click="chooseStudyMode" variant="primary" icon="academic-cap" :disabled="$this->dashboard->totalCards === 0" class="w-full md:w-auto justify-center">
                 Estudar agora
             </flux:button>
         </section>
@@ -116,7 +116,7 @@
 
                 <div class="flex flex-col gap-2 overflow-y-auto pr-2 -mr-2">
                     @forelse ($this->dashboard->recentDecks as $deck)
-                        <a href="{{ route('study', ['deck' => $deck['uuid']]) }}" wire:navigate wire:key="deck-{{ $deck['uuid'] }}" class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-variant transition-colors group {{ $deck['dim'] ? 'opacity-70' : '' }}">
+                        <button type="button" wire:click="chooseStudyMode('{{ $deck['uuid'] }}')" wire:key="deck-{{ $deck['uuid'] }}" class="w-full text-left cursor-pointer flex items-center justify-between p-2 rounded-lg hover:bg-surface-variant transition-colors group {{ $deck['dim'] ? 'opacity-70' : '' }}">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant text-primary">
                                     <flux:icon.rectangle-stack class="size-5" />
@@ -130,7 +130,7 @@
                                 <div class="w-2 h-2 rounded-full bg-error ml-auto mr-4"></div>
                             @endif
                             <flux:icon.chevron-right class="size-4 text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </a>
+                        </button>
                     @empty
                         <p class="text-body-sm text-on-surface-variant p-2">Nenhum baralho ainda.</p>
                     @endforelse

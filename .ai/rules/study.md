@@ -19,3 +19,10 @@ Traps:
 - `reviewId` is looked up via `Review::where('card_id', ...)->latest('id')->value('id')` right after `AnswerCardOrchestrator::handle()` returns, rather than changing that orchestrator's return type — its return value is asserted directly in `AnswerCardOrchestratorTest`.
 - The requeued-tail-pop is only safe because `history` entries are pushed 1:1 with `cardIds` pushes and popped in the same LIFO order — never reorder or filter `$history` independently of `$cardIds`.
 - `$history` is reset to `[]` in `startSession()` (mount and restart), same as `completedCount`/`index`.
+
+## Study has three modes, each with its own recall counters
+`/study/{deck?}` takes `?mode=meaning|reading|translation` (App\Enums\StudyMode), default meaning. `restart()` and links stay in mode. Each mode grades onto its own card column pair via `StudyMode::acedColumn()/missedColumn()` — meaning: aced_count/missed_count (unchanged, still the only thing `scopeToReinforce` and the dashboard read); reading: reading_*; translation: translation_*. Every review row also carries `reviews.mode`. AnswerCardOrchestrator/UndoAnswerOrchestrator/FindCardsToStudy/StartStudySessionOrchestrator all take a `StudyMode $mode = Meaning` last param; the study `$history` entries store `mode` so goBack restores the right columns.
+
+Meaning + reading share the flip-card UI (branch on `$isReading`); translation is a separate branch: tap-to-build the PT translation, `checkTranslation(array $tokens)`, first wrong = free retry, second wrong = missed + requeue. No AI anywhere in the study path.
+
+Mode picker modal is `<livewire:study-mode-modal />` (registered in layouts/app.blade.php), opened by dispatching `choose-study-mode` (deckUuids: []=all). GetDeckStudyModes gates: reading needs a card with transliteration, translation needs >=5 active cards with example+translation.

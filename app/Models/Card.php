@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
@@ -39,6 +40,10 @@ use Illuminate\Support\Facades\Storage;
  * @property bool $is_active
  * @property int $aced_count
  * @property int $missed_count
+ * @property int $reading_aced_count
+ * @property int $reading_missed_count
+ * @property int $translation_aced_count
+ * @property int $translation_missed_count
  * @property CarbonImmutable|null $last_reviewed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -64,6 +69,10 @@ use Illuminate\Support\Facades\Storage;
     'is_active',
     'aced_count',
     'missed_count',
+    'reading_aced_count',
+    'reading_missed_count',
+    'translation_aced_count',
+    'translation_missed_count',
     'last_reviewed_at',
 ])]
 class Card extends Model
@@ -80,6 +89,10 @@ class Card extends Model
             'is_active' => 'boolean',
             'aced_count' => 'integer',
             'missed_count' => 'integer',
+            'reading_aced_count' => 'integer',
+            'reading_missed_count' => 'integer',
+            'translation_aced_count' => 'integer',
+            'translation_missed_count' => 'integer',
             'last_reviewed_at' => 'immutable_datetime',
             'morphology_excluded_at' => 'immutable_datetime',
         ];
@@ -99,6 +112,14 @@ class Card extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * @return HasOne<TranslationExercise, $this>
+     */
+    public function translationExercise(): HasOne
+    {
+        return $this->hasOne(TranslationExercise::class);
     }
 
     public function imageUrl(): ?string

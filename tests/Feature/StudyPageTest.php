@@ -124,7 +124,7 @@ test('repeated requeues of a single card do not inflate the completion count', f
     $component->assertSet('totalCards', 1)
         ->assertSet('completedCount', 1)
         ->assertSet('progress', 100)
-        ->assertSee('Você revisou o único cartão deste baralho.');
+        ->assertSee('Você revisou o único cartão deste treino.');
 
     expect($card->fresh()->missed_count)->toBe(2)
         ->and($card->fresh()->aced_count)->toBe(1);

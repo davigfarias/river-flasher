@@ -4,7 +4,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 
 | Applies to | Rule file |
 | --- | --- |
-| app/Actions/** | .ai/rules/actions.md |
+| app/Actions/**, app/Actions/{PersistTranslationExercise,BuildTranslationWordBank,TokenizeText,CompareTranslationTokens,ResetTranslationBank}.php | .ai/rules/actions.md |
 | app/{Support/Grammar/**,Actions/GenerateInflectedForm.php,Actions/GetParadigm.php,Actions/ValidateGeneratedSentence.php,Ai/Agents/GreekSentenceWriter.php} | .ai/rules/agents.md |
 | app/{Actions/CalculateRecallCounters.php,Models/Card.php,DTO/RecallCounters.php}, app/{Actions/StoreCardImage.php,Actions/DeleteCardImage.php,Models/Card.php}, app/{Actions/FindCardsByTag.php,Actions/FindCardsByCategory.php,Actions/GetAvailableTags.php,Actions/GetAvailableCategories.php,Models/Card.php}, app/{Actions/InsertCardsBulk.php,Actions/ParseCsvCards.php}, app/{Actions/FindCardsToStudy.php,Actions/Orchestrators/StartStudySessionOrchestrator.php} | .ai/rules/app-actions.md |
 | app/{Models/AccessToken.php,Http/Middleware/EnsureAccessTokenIsValid.php,Console/Commands/*AccessToken*.php} | .ai/rules/commands.md |

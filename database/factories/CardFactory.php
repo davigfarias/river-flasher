@@ -39,8 +39,35 @@ class CardFactory extends Factory
             'is_active' => true,
             'aced_count' => 0,
             'missed_count' => 0,
+            'reading_aced_count' => 0,
+            'reading_missed_count' => 0,
+            'translation_aced_count' => 0,
+            'translation_missed_count' => 0,
             'last_reviewed_at' => null,
         ];
+    }
+
+    /**
+     * A card with no example sentence — excluded from the tradução study mode.
+     */
+    public function withoutSentence(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'example' => null,
+            'translation' => null,
+        ]);
+    }
+
+    /**
+     * A card carrying a known example sentence and its translation, ready for
+     * the tradução mode.
+     */
+    public function withSentence(string $example = 'ἡ ἀγάπη μακροθυμεῖ.', string $translation = 'O amor é paciente.'): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'example' => $example,
+            'translation' => $translation,
+        ]);
     }
 
     /**
