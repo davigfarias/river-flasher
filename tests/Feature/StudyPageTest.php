@@ -256,3 +256,32 @@ test('a foreign or bogus uuid in the decks query param is dropped rather than 40
         ->assertOk()
         ->assertSee($this->deck->name);
 });
+
+test('a card with is_image_hidden does not render the image on either face', function () {
+    $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id, 'is_image_hidden' => true]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->assertDontSee($card->imageUrl(), false)
+        ->call('reveal')
+        ->assertDontSee($card->imageUrl(), false);
+});
+
+test('toggleImageHidden flips and persists the flag on the current card', function () {
+    $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->assertSee($card->imageUrl(), false)
+        ->call('toggleImageHidden')
+        ->assertDontSee($card->imageUrl(), false);
+
+    expect($card->refresh()->is_image_hidden)->toBeTrue();
+});
+
+test('toggleImageHidden is a no-op for a card without an image', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id, 'image_path' => null]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->call('toggleImageHidden');
+
+    expect($card->refresh()->is_image_hidden)->toBeFalse();
+});

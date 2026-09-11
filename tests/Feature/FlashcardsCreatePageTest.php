@@ -173,3 +173,17 @@ test('an uploaded image is stored and attached to the created card', function ()
 
     Storage::disk('public')->assertExists($card->image_path);
 });
+
+test('hideImage is persisted onto the created card', function () {
+    Storage::fake('public');
+
+    Livewire::test('pages::flashcards-create')
+        ->set('form.word', 'ἄμπελος')
+        ->set('form.definition', 'Vine.')
+        ->set('form.image', UploadedFile::fake()->image('vine.jpg', 2000, 2000))
+        ->set('form.hideImage', true)
+        ->call('addToDeck')
+        ->assertHasNoErrors();
+
+    expect(Card::sole()->is_image_hidden)->toBeTrue();
+});

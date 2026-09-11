@@ -22,6 +22,7 @@ final readonly class CreateCard
             'example' => $data->example,
             'translation' => $data->translation,
             'image_path' => $data->imagePath,
+            'is_image_hidden' => $data->isImageHidden,
             'is_difficult' => $data->isDifficult,
         ]);
     }

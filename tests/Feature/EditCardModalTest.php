@@ -108,6 +108,18 @@ test('uploading a new image replaces the stored file', function () {
     Storage::disk('public')->assertExists($card->image_path);
 });
 
+test('open fills hideImage from the card and saving persists a change to it', function () {
+    $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id, 'is_image_hidden' => false]);
+
+    Livewire::test('edit-card-modal')
+        ->call('open', $card->id)
+        ->assertSet('form.hideImage', false)
+        ->set('form.hideImage', true)
+        ->call('save');
+
+    expect($card->fresh()->is_image_hidden)->toBeTrue();
+});
+
 test('checking remove image clears it and deletes the stored file', function () {
     Storage::fake('public');
     $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id]);

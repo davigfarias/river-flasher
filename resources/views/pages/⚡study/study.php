@@ -134,6 +134,26 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
     }
 
     /**
+     * Quick toggle for "esconder imagem durante o estudo" right from the
+     * study screen — flips the same `is_image_hidden` column the card
+     * editor writes to, so it's the one persistent flag either place sets.
+     */
+    public function toggleImageHidden(): void
+    {
+        $card = $this->card;
+
+        if (! $card || ! $card->image_path) {
+            return;
+        }
+
+        abort_unless($card->deck->access_token_id === session('access_token_id'), 404);
+
+        $card->update(['is_image_hidden' => ! $card->is_image_hidden]);
+
+        unset($this->card);
+    }
+
+    /**
      * Grades the current card (significado / leitura) and flips it back to its
      * front face, but deliberately does not advance to the next card yet —
      * that happens in `advance()`, called client-side once the flip animation

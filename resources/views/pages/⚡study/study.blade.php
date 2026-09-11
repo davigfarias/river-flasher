@@ -137,7 +137,18 @@
             <div class="w-full max-w-[600px] h-[400px] md:h-[480px] [perspective:1000px] mb-8 cursor-pointer" x-bind:class="{ 'pointer-events-none': transitioning }" wire:click="reveal">
                 <div @class(['relative w-full h-full transform-3d transition-transform duration-500 ease-in-out', 'rotate-x-180' => $revealed])>
                     <div class="absolute inset-0 backface-hidden rounded-xl flex flex-col items-center justify-center p-8 border-t-4 border-t-primary-container bg-surface-container-high/80 backdrop-blur-md border border-outline-variant/50 shadow-lg">
-                        @if (! $isReading && $this->card->imageUrl())
+                        @if (! $isReading && $this->card->image_path)
+                            <flux:button
+                                wire:click.stop="toggleImageHidden"
+                                :icon="$this->card->is_image_hidden ? 'eye-slash' : 'eye'"
+                                size="sm"
+                                variant="subtle"
+                                class="absolute top-4 right-4 z-10"
+                                title="{{ $this->card->is_image_hidden ? 'Mostrar imagem' : 'Ocultar imagem durante o estudo' }}"
+                            />
+                        @endif
+
+                        @if (! $isReading && $this->card->imageVisibleInStudy())
                             <img src="{{ $this->card->imageUrl() }}" alt="" class="max-h-60 md:max-h-72 rounded-lg object-contain">
                         @else
                             @if ($this->card->pos)
@@ -174,7 +185,7 @@
                                 @endif
                                 <p class="text-body-lg text-on-surface-variant max-w-md mx-auto">{{ $this->card->definition }}</p>
                             @else
-                                @if ($this->card->imageUrl())
+                                @if ($this->card->imageVisibleInStudy())
                                     <h2
                                         @class(['text-display-lg text-on-surface mb-4', 'font-hebrew' => $this->card->language->isRtl()])
                                         dir="{{ $this->card->language->isRtl() ? 'rtl' : 'ltr' }}"

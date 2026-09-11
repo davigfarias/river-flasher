@@ -18,6 +18,7 @@ test('it updates every editable field of the card', function () {
         pos: 'Noun',
         category: 'Grace concepts',
         isDifficult: true,
+        isImageHidden: true,
         imagePath: 'cards/example.webp',
     ));
 
@@ -29,5 +30,6 @@ test('it updates every editable field of the card', function () {
         ->and($updated->pos)->toBe('Noun')
         ->and($updated->category)->toBe('Grace concepts')
         ->and($updated->is_difficult)->toBeTrue()
+        ->and($updated->is_image_hidden)->toBeTrue()
         ->and($updated->image_path)->toBe('cards/example.webp');
 });

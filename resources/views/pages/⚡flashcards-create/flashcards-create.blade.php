@@ -115,6 +115,8 @@
                         @else
                             <flux:text class="text-body-sm text-on-surface-variant">Sem pré-visualização para este formato — a imagem será convertida ao salvar.</flux:text>
                         @endif
+
+                        <flux:checkbox wire:model="form.hideImage" label="Ocultar imagem durante o estudo" />
                     @endif
                 </div>
             </div>

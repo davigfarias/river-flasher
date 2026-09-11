@@ -125,6 +125,10 @@ new class extends Component
                     <flux:checkbox wire:model="form.removeImage" label="Remover imagem" />
                 </div>
             @endif
+
+            @if ($form->image || ($currentImageUrl && ! $form->removeImage))
+                <flux:checkbox wire:model="form.hideImage" label="Ocultar imagem durante o estudo" />
+            @endif
         </div>
 
         <flux:checkbox wire:model="form.markDifficult" label="Marcar como difícil" />

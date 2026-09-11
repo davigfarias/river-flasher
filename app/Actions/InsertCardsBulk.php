@@ -33,6 +33,7 @@ final readonly class InsertCardsBulk
             'example' => $row['example'],
             'translation' => $row['translation'],
             'image_path' => null,
+            'is_image_hidden' => false,
             'is_difficult' => $row['isDifficult'],
             'is_active' => true,
             'aced_count' => 0,

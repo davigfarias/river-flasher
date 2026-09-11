@@ -35,6 +35,8 @@ class CardForm extends Form
 
     public bool $markDifficult = false;
 
+    public bool $hideImage = false;
+
     public ?TemporaryUploadedFile $image = null;
 
     /**
@@ -74,6 +76,7 @@ class CardForm extends Form
         $this->pos = $card->pos ?? '';
         $this->category = $card->category ?? '';
         $this->markDifficult = $card->is_difficult;
+        $this->hideImage = $card->is_image_hidden;
         $this->image = null;
         $this->removeImage = false;
     }
@@ -90,6 +93,7 @@ class CardForm extends Form
             pos: $this->pos !== '' ? $this->pos : null,
             category: $this->category !== '' ? $this->category : null,
             isDifficult: $this->markDifficult,
+            isImageHidden: $this->hideImage,
             imagePath: $imagePath,
         );
     }

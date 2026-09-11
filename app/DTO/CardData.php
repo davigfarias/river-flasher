@@ -18,6 +18,7 @@ final readonly class CardData
         public ?string $pos,
         public ?string $category,
         public bool $isDifficult,
+        public bool $isImageHidden,
         public ?string $imagePath,
     ) {}
 }

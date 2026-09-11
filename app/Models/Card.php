@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $example
  * @property string|null $translation
  * @property string|null $image_path
+ * @property bool $is_image_hidden
  * @property bool $is_difficult
  * @property bool $is_active
  * @property int $aced_count
@@ -65,6 +66,7 @@ use Illuminate\Support\Facades\Storage;
     'example',
     'translation',
     'image_path',
+    'is_image_hidden',
     'is_difficult',
     'is_active',
     'aced_count',
@@ -85,6 +87,7 @@ class Card extends Model
         return [
             'language' => Language::class,
             'gender' => Gender::class,
+            'is_image_hidden' => 'boolean',
             'is_difficult' => 'boolean',
             'is_active' => 'boolean',
             'aced_count' => 'integer',
@@ -125,6 +128,16 @@ class Card extends Model
     public function imageUrl(): ?string
     {
         return $this->image_path === null ? null : Storage::url($this->image_path);
+    }
+
+    /**
+     * Whether this card's image should render during a study session. The
+     * image stays on the card either way — `is_image_hidden` only toggles
+     * study-screen rendering, never storage/management views.
+     */
+    public function imageVisibleInStudy(): bool
+    {
+        return $this->image_path !== null && ! $this->is_image_hidden;
     }
 
     /**
