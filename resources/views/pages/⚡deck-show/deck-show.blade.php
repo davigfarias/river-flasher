@@ -9,6 +9,10 @@
                 <h2 x-show="!editing" class="text-display-lg text-on-surface truncate">{{ $this->deck->name }}</h2>
                 <flux:button x-show="!editing" x-on:click="editing = true" icon="pencil" variant="ghost" size="sm" title="Renomear baralho" />
 
+                <flux:modal.trigger name="confirm-delete-deck">
+                    <flux:button x-show="!editing" icon="trash" variant="ghost" size="sm" title="Excluir baralho" />
+                </flux:modal.trigger>
+
                 <form
                     x-show="editing"
                     x-cloak
@@ -170,6 +174,25 @@
                     <flux:button variant="ghost">Cancelar</flux:button>
                 </flux:modal.close>
                 <flux:button variant="danger" wire:click="deactivateSelected">Desativar</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal name="confirm-delete-deck" class="w-full md:w-96">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Excluir "{{ $this->deck->name }}"?</flux:heading>
+                <flux:text class="mt-2">
+                    {{ $this->deck->cards()->count() }} {{ $this->deck->cards()->count() === 1 ? 'cartão e todo o histórico de revisão dele serão' : 'cartões e todo o histórico de revisão deles serão' }}
+                    apagados permanentemente. Isso não pode ser desfeito.
+                </flux:text>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancelar</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" wire:click="deleteDeck">Excluir permanentemente</flux:button>
             </div>
         </div>
     </flux:modal>

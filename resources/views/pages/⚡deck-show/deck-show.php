@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\DeleteDeck;
 use App\Actions\ResetTranslationBank;
 use App\Actions\SetCardsActiveState;
 use App\Actions\ToggleCardActive;
@@ -125,6 +126,23 @@ new #[Layout('layouts::app')] #[Title('Baralho')] class extends Component
         $this->selectedCardIds = [];
 
         unset($this->cards, $this->inactiveCount);
+    }
+
+    public function deleteDeck(DeleteDeck $action): void
+    {
+        $cardCount = $this->deck->cards()->count();
+
+        $action->handle($this->deck);
+
+        Flux::modal('confirm-delete-deck')->close();
+
+        Flux::toast(
+            heading: 'Baralho excluído',
+            text: $cardCount.' '.($cardCount === 1 ? 'cartão foi apagado' : 'cartões foram apagados').' junto com o baralho.',
+            variant: 'success',
+        );
+
+        $this->redirect(route('decks'), navigate: true);
     }
 
     public function updateName(UpdateDeck $action): void
