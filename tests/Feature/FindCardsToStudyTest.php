@@ -82,3 +82,12 @@ test('deactivated cards are excluded, in both study-all and per-deck sessions', 
     expect($allDecks->pluck('id')->all())->toBe([$active->id])
         ->and($thisDeck->pluck('id')->all())->toBe([$active->id]);
 });
+
+test('onlyStarred pulls only starred cards', function () {
+    $starred = Card::factory()->create(['deck_id' => $this->deck->id, 'is_starred' => true]);
+    Card::factory()->create(['deck_id' => $this->deck->id, 'is_starred' => false]);
+
+    $cards = app(FindCardsToStudy::class)->handle($this->token->id, onlyStarred: true);
+
+    expect($cards->pluck('id')->all())->toBe([$starred->id]);
+});

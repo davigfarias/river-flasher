@@ -46,6 +46,16 @@
         <span class="text-label-sm text-on-surface-variant whitespace-nowrap truncate hidden sm:inline">{{ $deckName }}</span>
         <flux:progress :value="$this->progress" class="flex-1" />
         <span class="text-label-sm font-bold text-primary shrink-0">{{ $this->progress }}%</span>
+        @if ($this->card)
+            <flux:button
+                wire:click="toggleStarred"
+                icon="star"
+                variant="subtle"
+                size="sm"
+                class="{{ $this->card->is_starred ? 'text-amber-500' : '' }} shrink-0"
+                title="{{ $this->card->is_starred ? 'Remover estrela' : 'Marcar com estrela' }}"
+            />
+        @endif
     </div>
 
     <div class="flex-1 flex flex-col items-center justify-center p-4 md:p-6 lg:p-8 relative w-full max-w-[800px] mx-auto">

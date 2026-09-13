@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $translation
  * @property string|null $image_path
  * @property bool $is_image_hidden
+ * @property bool $is_starred
  * @property bool $is_difficult
  * @property bool $is_active
  * @property int $aced_count
@@ -67,6 +68,7 @@ use Illuminate\Support\Facades\Storage;
     'translation',
     'image_path',
     'is_image_hidden',
+    'is_starred',
     'is_difficult',
     'is_active',
     'aced_count',
@@ -88,6 +90,7 @@ class Card extends Model
             'language' => Language::class,
             'gender' => Gender::class,
             'is_image_hidden' => 'boolean',
+            'is_starred' => 'boolean',
             'is_difficult' => 'boolean',
             'is_active' => 'boolean',
             'aced_count' => 'integer',
@@ -164,6 +167,19 @@ class Card extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Cards the user starred during study to build a focused session out of
+     * later — a manual "needs extra review" flag, separate from the
+     * recall-counter-driven `scopeToReinforce`.
+     *
+     * @param  Builder<Card>  $query
+     * @return Builder<Card>
+     */
+    public function scopeStarred(Builder $query): Builder
+    {
+        return $query->where('is_starred', true);
     }
 
     /**

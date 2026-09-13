@@ -50,6 +50,24 @@ test('opening with no deck targets every deck', function () {
         ->assertSee(route('study', ['mode' => 'meaning']), false);
 });
 
+test('estudar com estrela is disabled with a hint when the deck has no starred cards', function () {
+    Card::factory()->create(['deck_id' => $this->deck->id, 'is_starred' => false]);
+
+    Livewire::test('study-mode-modal')
+        ->call('open', [$this->deck->uuid])
+        ->assertSee('Marque cartões com estrela durante o estudo para liberar')
+        ->assertDontSee('starred=1');
+});
+
+test('estudar com estrela links to a starred=1 session once the deck has a starred card', function () {
+    Card::factory()->create(['deck_id' => $this->deck->id, 'is_starred' => true]);
+
+    Livewire::test('study-mode-modal')
+        ->call('open', [$this->deck->uuid])
+        ->assertSee('mode=meaning')
+        ->assertSee('starred=1');
+});
+
 test('a multi-deck selection builds a decks= link', function () {
     $other = Deck::factory()->create(['access_token_id' => $this->token->id]);
 

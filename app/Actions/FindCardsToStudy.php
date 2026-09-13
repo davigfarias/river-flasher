@@ -18,6 +18,8 @@ final readonly class FindCardsToStudy
      * Ordering and eligibility follow the study mode: each mode sorts by its
      * own recall counters, and tradução only pulls cards that carry both an
      * example sentence and its translation to build the exercise from.
+     * `$onlyStarred` narrows to cards the user starred during a previous
+     * study session, for the "estudar com estrela" personalized session.
      *
      * @param  array<int, int>  $deckIds
      * @return Collection<int, Card>
@@ -27,11 +29,13 @@ final readonly class FindCardsToStudy
         array $deckIds = [],
         int $limit = 50,
         StudyMode $mode = StudyMode::Meaning,
+        bool $onlyStarred = false,
     ): Collection {
         return Card::query()
             ->whereHas('deck', fn ($query) => $query->where('access_token_id', $accessTokenId))
             ->when($deckIds !== [], fn ($query) => $query->whereIn('deck_id', $deckIds))
             ->active()
+            ->when($onlyStarred, fn ($query) => $query->starred())
             ->when($mode === StudyMode::Translation, fn ($query) => $query
                 ->whereNotNull('example')->where('example', '!=', '')
                 ->whereNotNull('translation')->where('translation', '!=', ''))

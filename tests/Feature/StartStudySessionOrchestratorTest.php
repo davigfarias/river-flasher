@@ -43,3 +43,13 @@ test('several decks build one combined session, named by count', function () {
     expect($session->deckName)->toBe('2 baralhos selecionados')
         ->and($session->cardIds)->toEqualCanonicalizing([$cardA->id, $cardB->id]);
 });
+
+test('onlyStarred builds a session out of only the starred cards', function () {
+    $deck = Deck::factory()->create(['access_token_id' => $this->token->id]);
+    $starred = Card::factory()->create(['deck_id' => $deck->id, 'is_starred' => true]);
+    Card::factory()->create(['deck_id' => $deck->id, 'is_starred' => false]);
+
+    $session = app(StartStudySessionOrchestrator::class)->handle($this->token->id, new Collection, onlyStarred: true);
+
+    expect($session->cardIds)->toBe([$starred->id]);
+});

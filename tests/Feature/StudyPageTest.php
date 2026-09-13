@@ -285,3 +285,20 @@ test('toggleImageHidden is a no-op for a card without an image', function () {
 
     expect($card->refresh()->is_image_hidden)->toBeFalse();
 });
+
+test('toggleStarred flips and persists the flag on the current card', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id, 'is_starred' => false]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid])
+        ->call('toggleStarred');
+
+    expect($card->refresh()->is_starred)->toBeTrue();
+});
+
+test('a starred=true session only pulls starred cards', function () {
+    $starred = Card::factory()->create(['deck_id' => $this->deck->id, 'is_starred' => true]);
+    Card::factory()->create(['deck_id' => $this->deck->id, 'is_starred' => false]);
+
+    Livewire::test('pages::study', ['deck' => $this->deck->uuid, 'starred' => true])
+        ->assertSet('cardIds', [$starred->id]);
+});

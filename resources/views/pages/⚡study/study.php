@@ -23,6 +23,15 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
     public string $mode = 'meaning';
 
     /**
+     * "Estudar com estrela" — restricts this session to cards the user
+     * starred, instead of the normal recall-counter-ordered set. Kept in
+     * the URL (like `mode`) so `restart()` rebuilds the same personalized
+     * session rather than falling back to "study everything".
+     */
+    #[Url]
+    public bool $starred = false;
+
+    /**
      * The deck uuids this session was built from — empty means "every
      * deck". Kept so `restart()` can rebuild the exact same session
      * instead of falling back to "study everything".
@@ -149,6 +158,26 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
         abort_unless($card->deck->access_token_id === session('access_token_id'), 404);
 
         $card->update(['is_image_hidden' => ! $card->is_image_hidden]);
+
+        unset($this->card);
+    }
+
+    /**
+     * Marks/unmarks the current card so it can later be pulled into a
+     * personalized "estudar com estrela" session — noticed mid-study,
+     * flagged on the spot rather than in the deck's card list.
+     */
+    public function toggleStarred(): void
+    {
+        $card = $this->card;
+
+        if (! $card) {
+            return;
+        }
+
+        abort_unless($card->deck->access_token_id === session('access_token_id'), 404);
+
+        $card->update(['is_starred' => ! $card->is_starred]);
 
         unset($this->card);
     }
@@ -324,7 +353,7 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
             default => Deck::whereIn('uuid', $deckUuids)->where('access_token_id', $accessTokenId)->get(),
         };
 
-        $session = $orchestrator->handle($accessTokenId, $decks, $this->studyMode);
+        $session = $orchestrator->handle($accessTokenId, $decks, $this->studyMode, $this->starred);
 
         $this->deckUuids = $deckUuids;
         $this->deckName = $session->deckName;

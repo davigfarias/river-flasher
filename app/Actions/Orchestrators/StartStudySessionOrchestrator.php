@@ -20,14 +20,19 @@ final readonly class StartStudySessionOrchestrator
      * session scoped to just those — including a custom multi-deck
      * selection from the Baralhos page.
      *
+     * `$onlyStarred` builds the personalized "estudar com estrela" session
+     * out of cards the user starred during a previous session, instead of
+     * the normal recall-counter-ordered set.
+     *
      * @param  Collection<int, Deck>  $decks
      */
-    public function handle(int $accessTokenId, Collection $decks, StudyMode $mode = StudyMode::Meaning): StudySessionData
+    public function handle(int $accessTokenId, Collection $decks, StudyMode $mode = StudyMode::Meaning, bool $onlyStarred = false): StudySessionData
     {
         $cards = $this->findCardsToStudy->handle(
             $accessTokenId,
             $decks->pluck('id')->all(),
             mode: $mode,
+            onlyStarred: $onlyStarred,
         );
 
         $deckName = match (true) {

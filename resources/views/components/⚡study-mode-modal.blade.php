@@ -2,7 +2,7 @@
 
 use App\Actions\GetDeckStudyModes;
 use App\Enums\StudyMode;
-use App\Models\Deck;
+use App\Models\{Card, Deck};
 use Flux\Flux;
 use Livewire\Attributes\{Computed, Locked, On};
 use Livewire\Component;
@@ -37,7 +37,7 @@ new class extends Component
             default => count($this->deckUuids).' baralhos selecionados',
         };
 
-        unset($this->modes);
+        unset($this->modes, $this->hasStarredCards);
 
         Flux::modal('study-mode')->show();
     }
@@ -50,20 +50,34 @@ new class extends Component
     {
         $accessTokenId = (int) session('access_token_id');
 
-        $deckIds = $this->deckUuids === []
-            ? []
-            : Deck::query()
-                ->whereIn('uuid', $this->deckUuids)
-                ->where('access_token_id', $accessTokenId)
-                ->pluck('id')
-                ->all();
-
-        return app(GetDeckStudyModes::class)->handle($accessTokenId, $deckIds);
+        return app(GetDeckStudyModes::class)->handle($accessTokenId, $this->deckIds());
     }
 
-    public function url(StudyMode $mode): string
+    /**
+     * Whether "estudar com estrela" has anything to pull from — gates the
+     * split significado button the same way reading/tradução are gated.
+     */
+    #[Computed]
+    public function hasStarredCards(): bool
+    {
+        $accessTokenId = (int) session('access_token_id');
+        $deckIds = $this->deckIds();
+
+        return Card::query()
+            ->whereHas('deck', fn ($query) => $query->where('access_token_id', $accessTokenId))
+            ->when($deckIds !== [], fn ($query) => $query->whereIn('deck_id', $deckIds))
+            ->active()
+            ->starred()
+            ->exists();
+    }
+
+    public function url(StudyMode $mode, bool $starred = false): string
     {
         $params = ['mode' => $mode->value];
+
+        if ($starred) {
+            $params['starred'] = 1;
+        }
 
         if (count($this->deckUuids) === 1) {
             $params['deck'] = $this->deckUuids[0];
@@ -72,6 +86,24 @@ new class extends Component
         }
 
         return route('study', $params);
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function deckIds(): array
+    {
+        if ($this->deckUuids === []) {
+            return [];
+        }
+
+        $accessTokenId = (int) session('access_token_id');
+
+        return Deck::query()
+            ->whereIn('uuid', $this->deckUuids)
+            ->where('access_token_id', $accessTokenId)
+            ->pluck('id')
+            ->all();
     }
 };
 ?>
@@ -87,11 +119,34 @@ new class extends Component
             @foreach (\App\Enums\StudyMode::cases() as $mode)
                 @php($enabled = $this->modes[$mode->value] ?? false)
 
-                @if ($enabled)
+                @if ($enabled && $mode === \App\Enums\StudyMode::Meaning)
+                    <div class="flex gap-2">
+                        <flux:button
+                            :href="$this->url($mode)"
+                            wire:navigate
+                            variant="primary"
+                            :icon="$mode->icon()"
+                            class="flex-1 justify-center"
+                        >
+                            {{ $mode->label() }}
+                        </flux:button>
+                        <flux:button
+                            :href="$this->hasStarredCards ? $this->url($mode, starred: true) : null"
+                            wire:navigate
+                            variant="ghost"
+                            icon="star"
+                            class="flex-1 justify-center {{ $this->hasStarredCards ? 'text-amber-500' : '' }}"
+                            :disabled="! $this->hasStarredCards"
+                            title="{{ $this->hasStarredCards ? '' : 'Marque cartões com estrela durante o estudo para liberar' }}"
+                        >
+                            Com estrela
+                        </flux:button>
+                    </div>
+                @elseif ($enabled)
                     <flux:button
                         :href="$this->url($mode)"
                         wire:navigate
-                        variant="{{ $mode === \App\Enums\StudyMode::Meaning ? 'primary' : 'ghost' }}"
+                        variant="ghost"
                         :icon="$mode->icon()"
                         class="w-full justify-center"
                     >
