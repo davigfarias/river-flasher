@@ -1,20 +1,20 @@
-<div class="w-full max-w-md bg-surface-container-high rounded-xl border border-outline-variant/30 shadow-[0_10px_30px_rgba(0,0,0,0.2)] p-6 md:p-8 flex flex-col items-center text-center transition-shadow duration-300 hover:shadow-[0_15px_40px_rgba(0,0,0,0.3)]">
-    <div class="mb-6 w-20 h-20 rounded-full bg-surface flex items-center justify-center border border-outline-variant/50 shadow-sm">
-        <flux:icon.droplet class="size-8 text-primary" />
-    </div>
+<div class="flex w-full justify-center">
+    <flux:card class="w-full max-w-sm">
+        <form wire:submit="joinSession" class="space-y-8">
+            <div class="space-y-2 text-center">
+                <flux:heading size="lg">Acesso restrito</flux:heading>
+                <flux:text>Digite o código de acesso.</flux:text>
+            </div>
 
-    <h1 class="text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">Digite o código de acesso</h1>
-    <p class="text-body-md text-on-surface-variant mb-8">Digite o código de 4 dígitos fornecido para entrar na sessão de estudo.</p>
-
-    <form wire:submit="joinSession" class="w-full flex flex-col gap-6">
-        <flux:otp wire:model="code" length="4" submit="auto" class="w-full justify-between" />
-
-        @error('code')
-            <flux:text class="text-error text-label-sm -mt-4">{{ $message }}</flux:text>
-        @enderror
-
-        <flux:button type="submit" variant="primary" icon:trailing="arrow-right" class="w-full justify-center min-h-12">
-            Começar a estudar
-        </flux:button>
-    </form>
+            <flux:otp
+                wire:model="code"
+                length="4"
+                private
+                label="Código de acesso"
+                label:sr-only
+                submit="auto"
+                class="mx-auto"
+            />
+        </form>
+    </flux:card>
 </div>
