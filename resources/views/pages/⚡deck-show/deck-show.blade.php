@@ -99,7 +99,17 @@
                     @foreach ($this->cards as $card)
                         <div wire:key="card-{{ $card->id }}" @class(['group bg-surface-container p-5 rounded-xl border border-outline-variant shadow-sm flex flex-col gap-3', 'opacity-60' => ! $card->is_active])>
                             <div class="flex items-start justify-between -mb-1">
-                                <flux:checkbox value="{{ $card->id }}" />
+                                <div class="flex items-center gap-2">
+                                    <flux:checkbox value="{{ $card->id }}" />
+
+                                    <flux:tooltip content="Acertos / erros">
+                                        <flux:badge size="sm" color="zinc" class="tabular-nums" data-test="recall-counters">
+                                            <span class="text-green-600 dark:text-green-400">{{ $card->aced_count }}</span>
+                                            <span class="mx-1">/</span>
+                                            <span class="text-red-600 dark:text-red-400">{{ $card->missed_count }}</span>
+                                        </flux:badge>
+                                    </flux:tooltip>
+                                </div>
 
                                 <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 max-md:opacity-100 transition-opacity">
                                     <flux:button
@@ -132,7 +142,7 @@
                             @endif
 
                             <h3
-                                @class(['text-headline-sm text-on-surface', 'font-hebrew' => $card->language->isRtl()])
+                                @class(['text-headline-sm text-on-surface text-center', 'font-hebrew' => $card->language->isRtl()])
                                 dir="{{ $card->language->isRtl() ? 'rtl' : 'ltr' }}"
                                 lang="{{ $card->language->value }}"
                             >
@@ -140,7 +150,7 @@
                             </h3>
 
                             @if ($card->transliteration)
-                                <p class="text-body-sm text-on-surface-variant -mt-2">/{{ $card->transliteration }}/</p>
+                                <p class="text-body-sm text-on-surface-variant text-center -mt-2">/{{ $card->transliteration }}/</p>
                             @endif
 
                             <p class="text-body-md text-on-surface">{{ $card->definition }}</p>

@@ -36,6 +36,17 @@ test('it shows every card with its full content', function () {
         ->assertSee('Love is patient.');
 });
 
+test('each card shows its aced and missed counters', function () {
+    Card::factory()->create([
+        'deck_id' => $this->deck->id,
+        'aced_count' => 7,
+        'missed_count' => 3,
+    ]);
+
+    Livewire::test('pages::deck-show', ['deck' => $this->deck->uuid])
+        ->assertSeeInOrder(['recall-counters', '7', '/', '3'], false);
+});
+
 test('a card with an image shows its thumbnail', function () {
     $card = Card::factory()->withImage()->create(['deck_id' => $this->deck->id]);
 
