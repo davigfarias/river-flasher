@@ -6,28 +6,31 @@ namespace App\Support\Grammar;
 
 use App\Enums\GrammaticalCase;
 use App\Enums\GrammaticalNumber;
+use App\Enums\GrammaticalPerson;
 use InvalidArgumentException;
 
 /**
  * An immutable inflection table, built from one entry of
  * config/grammar/{language}.php. Holds nothing but the endings — the
- * concatenation itself lives in App\Actions\GenerateInflectedForm.
+ * concatenation itself lives in App\Actions\GenerateInflectedForm /
+ * GenerateInflectedVerbForm.
  */
 final readonly class Paradigm
 {
     /**
-     * @param  array<string, array<string, string|null>>  $endings  case key => ['sg' => ?string, 'pl' => ?string]
+     * @param  array<string, array<string, string|null>>  $endings  noun: case key => ['sg' => ?string, 'pl' => ?string]; verb: person key ('1'|'2'|'3') => ['sg' => ?string, 'pl' => ?string]
      */
     public function __construct(
         public string $slug,
         public string $label,
         public ?string $pos,
         public ?string $gender,
+        public ?string $voice,
         public array $endings,
     ) {}
 
     /**
-     * @param  array{label?: string, pos?: string|null, gender?: string|null, endings?: array<string, array<string, string|null>>}  $config
+     * @param  array{label?: string, pos?: string|null, gender?: string|null, voice?: string|null, endings?: array<string, array<string, string|null>>}  $config
      */
     public static function fromConfig(string $slug, array $config): self
     {
@@ -40,6 +43,7 @@ final readonly class Paradigm
             label: $config['label'] ?? $slug,
             pos: $config['pos'] ?? null,
             gender: $config['gender'] ?? null,
+            voice: $config['voice'] ?? null,
             endings: $config['endings'],
         );
     }
@@ -53,5 +57,13 @@ final readonly class Paradigm
     public function endingFor(GrammaticalCase $case, GrammaticalNumber $number): ?string
     {
         return $this->endings[$case->value][$number->value] ?? null;
+    }
+
+    /**
+     * The ending for a verb's person/number cell.
+     */
+    public function endingForPerson(GrammaticalPerson $person, GrammaticalNumber $number): ?string
+    {
+        return $this->endings[$person->value][$number->value] ?? null;
     }
 }
