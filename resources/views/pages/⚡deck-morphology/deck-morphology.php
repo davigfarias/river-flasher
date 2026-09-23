@@ -110,7 +110,10 @@ new #[Layout('layouts::app')] #[Title('Anotar morfologia')] class extends Compon
 
     /**
      * Slugs whose nominative singular the stem can't predict — those rows
-     * show the nom_sg_override input.
+     * show the nom_sg_override input. Verb paradigms don't have a
+     * nominative at all (their `endings` are keyed by person, not case) —
+     * excluded here, or endingFor() would read a missing 'nom' key as null
+     * and flag every verb as irregular.
      *
      * @return array<int, string>
      */
@@ -118,7 +121,8 @@ new #[Layout('layouts::app')] #[Title('Anotar morfologia')] class extends Compon
     public function slugsNeedingOverride(): array
     {
         return app(ListParadigms::class)->handle()
-            ->filter(fn ($paradigm) => $paradigm->endingFor(GrammaticalCase::Nominative, GrammaticalNumber::Singular) === null)
+            ->filter(fn ($paradigm) => $paradigm->pos !== 'verb'
+                && $paradigm->endingFor(GrammaticalCase::Nominative, GrammaticalNumber::Singular) === null)
             ->keys()
             ->all();
     }

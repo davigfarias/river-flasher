@@ -61,6 +61,14 @@ test('the genitive preview builds from the row stem + paradigm', function () {
         ->assertSee('λογου');
 });
 
+test('a verb paradigm never shows the nom. sing. override field, even without a stem', function () {
+    $card = Card::factory()->create(['deck_id' => $this->deck->id, 'language' => Language::Greek]);
+
+    Livewire::test('pages::deck-morphology', ['deck' => $this->deck->uuid])
+        ->set("rows.{$card->id}.paradigm_slug", 'verb-pres-act')
+        ->assertDontSee('Nom. sing.');
+});
+
 test('a bogus paradigm slug is rejected', function () {
     $card = Card::factory()->create(['deck_id' => $this->deck->id, 'language' => Language::Greek]);
 
