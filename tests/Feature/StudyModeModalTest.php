@@ -31,7 +31,7 @@ test('leitura and tradução links appear only when the deck has the data', func
     Livewire::test('study-mode-modal')
         ->call('open', [$this->deck->uuid])
         ->assertSee(route('study', ['deck' => $this->deck->uuid, 'mode' => 'reading']), false)
-        ->assertSee(route('study', ['deck' => $this->deck->uuid, 'mode' => 'translation']), false);
+        ->assertSee(route('study.grammar', ['deck' => $this->deck->uuid]), false);
 });
 
 test('tradução is disabled with a hint when too few cards have sentences', function () {
@@ -40,7 +40,7 @@ test('tradução is disabled with a hint when too few cards have sentences', fun
     Livewire::test('study-mode-modal')
         ->call('open', [$this->deck->uuid])
         ->assertSee('Precisa de ao menos 5 cartões')
-        ->assertDontSee(route('study', ['deck' => $this->deck->uuid, 'mode' => 'translation']), false);
+        ->assertDontSee(route('study.grammar', ['deck' => $this->deck->uuid]), false);
 });
 
 test('opening with no deck targets every deck', function () {

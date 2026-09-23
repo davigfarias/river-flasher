@@ -15,4 +15,5 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Livewire/Forms/*.php | .ai/rules/forms.md |
 | .env | .ai/rules/general.md |
 | app/Providers/AppServiceProvider.php | .ai/rules/providers.md |
+| resources/views/pages/⚡study-grammar/*.php | .ai/rules/study-grammar.md |
 | resources/views/pages/⚡study/*.php | .ai/rules/study.md |

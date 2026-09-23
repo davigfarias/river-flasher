@@ -32,6 +32,15 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
     public bool $starred = false;
 
     /**
+     * Tradução only — narrows the session to cards annotated with this
+     * declension (paradigm_slug), picked on the study-grammar screen before
+     * arriving here. Kept in the URL (like `starred`) so `restart()` stays
+     * scoped to the same declension.
+     */
+    #[Url]
+    public ?string $paradigm = null;
+
+    /**
      * The deck uuids this session was built from — empty means "every
      * deck". Kept so `restart()` can rebuild the exact same session
      * instead of falling back to "study everything".
@@ -353,7 +362,7 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
             default => Deck::whereIn('uuid', $deckUuids)->where('access_token_id', $accessTokenId)->get(),
         };
 
-        $session = $orchestrator->handle($accessTokenId, $decks, $this->studyMode, $this->starred);
+        $session = $orchestrator->handle($accessTokenId, $decks, $this->studyMode, $this->starred, $this->paradigm);
 
         $this->deckUuids = $deckUuids;
         $this->deckName = $session->deckName;

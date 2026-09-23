@@ -22,17 +22,19 @@ final readonly class StartStudySessionOrchestrator
      *
      * `$onlyStarred` builds the personalized "estudar com estrela" session
      * out of cards the user starred during a previous session, instead of
-     * the normal recall-counter-ordered set.
+     * the normal recall-counter-ordered set. `$paradigmSlug` narrows a
+     * tradução session to one declension — see FindCardsToStudy.
      *
      * @param  Collection<int, Deck>  $decks
      */
-    public function handle(int $accessTokenId, Collection $decks, StudyMode $mode = StudyMode::Meaning, bool $onlyStarred = false): StudySessionData
+    public function handle(int $accessTokenId, Collection $decks, StudyMode $mode = StudyMode::Meaning, bool $onlyStarred = false, ?string $paradigmSlug = null): StudySessionData
     {
         $cards = $this->findCardsToStudy->handle(
             $accessTokenId,
             $decks->pluck('id')->all(),
             mode: $mode,
             onlyStarred: $onlyStarred,
+            paradigmSlug: $paradigmSlug,
         );
 
         $deckName = match (true) {

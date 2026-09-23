@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\FindCardsToStudy;
+use App\Enums\StudyMode;
 use App\Models\AccessToken;
 use App\Models\Card;
 use App\Models\Deck;
@@ -90,4 +91,21 @@ test('onlyStarred pulls only starred cards', function () {
     $cards = app(FindCardsToStudy::class)->handle($this->token->id, onlyStarred: true);
 
     expect($cards->pluck('id')->all())->toBe([$starred->id]);
+});
+
+test('paradigmSlug narrows a tradução session to that declension only', function () {
+    $matching = Card::factory()->declinable(paradigmSlug: 'noun-2-masc')->withSentence()->create(['deck_id' => $this->deck->id]);
+    Card::factory()->declinable(paradigmSlug: 'noun-1-fem-eta')->withSentence()->create(['deck_id' => $this->deck->id]);
+
+    $cards = app(FindCardsToStudy::class)->handle($this->token->id, mode: StudyMode::Translation, paradigmSlug: 'noun-2-masc');
+
+    expect($cards->pluck('id')->all())->toBe([$matching->id]);
+});
+
+test('paradigmSlug is ignored outside tradução mode', function () {
+    $card = Card::factory()->declinable(paradigmSlug: 'noun-1-fem-eta')->create(['deck_id' => $this->deck->id]);
+
+    $cards = app(FindCardsToStudy::class)->handle($this->token->id, paradigmSlug: 'noun-2-masc');
+
+    expect($cards->pluck('id')->all())->toBe([$card->id]);
 });

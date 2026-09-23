@@ -89,6 +89,23 @@ new class extends Component
     }
 
     /**
+     * Tradução goes through the declension picker first, instead of
+     * straight into /study — see resources/views/pages/⚡study-grammar.
+     */
+    public function grammarUrl(): string
+    {
+        $params = [];
+
+        if (count($this->deckUuids) === 1) {
+            $params['deck'] = $this->deckUuids[0];
+        } elseif (count($this->deckUuids) > 1) {
+            $params['decks'] = implode(',', $this->deckUuids);
+        }
+
+        return route('study.grammar', $params);
+    }
+
+    /**
      * @return array<int, int>
      */
     private function deckIds(): array
@@ -142,6 +159,16 @@ new class extends Component
                             Com estrela
                         </flux:button>
                     </div>
+                @elseif ($enabled && $mode === \App\Enums\StudyMode::Translation)
+                    <flux:button
+                        :href="$this->grammarUrl()"
+                        wire:navigate
+                        variant="ghost"
+                        :icon="$mode->icon()"
+                        class="w-full justify-center"
+                    >
+                        {{ $mode->label() }}
+                    </flux:button>
                 @elseif ($enabled)
                     <flux:button
                         :href="$this->url($mode)"
